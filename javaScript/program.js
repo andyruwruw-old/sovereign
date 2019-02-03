@@ -1,38 +1,87 @@
+// Inicializing Game Cookies.
+function inicializeCookie(name, value, days) 
+{
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; espires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path =/";
+}
 
+// Returns Cookie Value off name.
+function getCookie(name)
+{
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++)
+    {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEq.length,c.length);
+    }
+    return null;
+}
 
+// Deletes Cookies for Reset
+function eraseCookie(name) 
+{
+    document.cookie = name + '=; Max-Age = -99999999;';
+}
+
+function gameStartCookies()
+{
+    inicializeCookie(monthTime, 0, 1);
+    inicializeCookies(lumberResource, 0, 1);
+    inicializeCookies(foodResource, 0, 1);
+    inicializeCookies(stoneResource, 0, 1);
+    inicializeCookies(goldResource, 0, 1);
+
+    inicializeCookies(housesNum, 0, 1);
+    inicializeCookies(citizensNum, 0, 1);
+    inicializeCookies(soldiersNum, 0, 1);
+    inicializeCookies(satisfaction, 0.75, 1);
+
+    inicializeCookies(workersFarm, 0, 1);
+    inicializeCookies(workersLumber, 0, 1);
+    inicializeCookies(workersSoldier, 0, 1);
+    inicializeCookies(workersMine, 0, 1);
+    inicializeCookies(workersTavern, 0, 1);
+    inicializeCookies(workersArcher, 0, 1);
+
+    inicializeCookies(weaponsNum, 0, 1);
+    inicializeCookies(landNum, 0, 1);
+
+    inicializeCookies(houseBuilding, 1, 1);
+    inicializeCookies(farmBuilding, 0, 1);
+    inicializeCookies(carpenterBuilding, 0, 1);
+    inicializeCookies(lumberBuilding, 0, 1);
+    inicializeCookies(barracksBuilding, 0, 1);
+    inicializeCookies(mineBuilding, 0, 1);
+    inicializeCookies(tavernBuilding, 0, 1);
+    inicializeCookies(marketBuilding, 0, 1);
+    inicializeCookies(wallsBuilding, 0, 1);
+    inicializeCookies(siegeBuilding, 0, 1);
+    inicializeCookies(townsqBuilding, 0, 1);
+
+    inicializeCookies(lumberRate, 0, 1);
+    inicializeCookie(foodRate, 0, 1);
+    inicializeCookie(stoneRate, 0, 1);
+    inicializeCookie(goldRate, 0, 1);
+}
+
+// Game Start Time keeping Program
 function main() 
 {
-    var monthTime = 0,
-    lumberResource = 0,
-    foodResource = 0,
-    stoneResource = 0,
-    goldResource = 0,
+    // Fuction inicializes statistic Cookies.
+    gameStartCookies();
 
-    housesNum = 0,
-    citizensNum = 0,
-    soldiersNum = 0,
-    satisfaction = 0.75,
-
-    jobAssignment = {farm: 0, carpenter: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0},
-
-    weaponsNum = 0,
-    landNum = 1,
-
-    houseBuilding = 1,
-    farmBuilding = 0,
-    carpenterBuilding = 0,
-    lumberBuilding = 0,
-    barracksBuilding = 0,
-    mineBuilding = 0,
-    tavernBuilding = 0,
-    marketBuilding = 0,
-    wallsBuilding = 0,
-    siegeBuilding = 0,
-    townsqBuilding = 0;
-
+    //Time Trackig
     var gameDone = 0;
     var startTime = Date.now();
 
+    // Loops rus throughout game.
     while (!gameDone)
     {
         newMonth = monthTime;
@@ -41,7 +90,7 @@ function main()
         }
         if (newMonth != monthTime)
         {
-
+            
         }
     }
 
@@ -49,9 +98,10 @@ function main()
     document.getElementById("location").innerHTML = location[0];
 }
 
+// Uses random to determin Invasion
 function possibleInvasion()
 {
-
+    var invasionChance;
     if (Math.random() > invasionChance)
     {
         return 1;
@@ -62,14 +112,16 @@ function possibleInvasion()
     }
 }
 
+// Build's house, checks for land and lumber
 function buildHouse(housesNum, landNum, lumberResource)
 {
-    var HOUSE_COST = 10;
+    var HOUSE_COST = 30;
     var HOUSES_PER_LAND = 50;
     if ((lumberResource < houseCost) && (housesNum <= (HOUSES_PER_LAND * landNum)))
     {
         housesNum += 1;
         lumberResource -= HOUSE_COST;
+        
         return housesNum;
     }
     if (lumberResource < houseCost)
