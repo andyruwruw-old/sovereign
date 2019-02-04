@@ -1,75 +1,13 @@
-// Inicializing Game Cookies.
-function inicializeCookie(name, value, days) 
-{
-    var expires = "";
-    if (days) {
-        var date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
-        expires = "; espires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "") + expires + "; path =/";
-}
+// Inicializing Game Variables
+var monthTime = 0;
+var resourceStat = {lumber: 0, food: 0, stone: 0, gold: 0, weaponsNum: 0, landNum: 0};
+var citizensStat = {population: 2, satisfaction: 0.75};
+var buildingsStat = {houses: 1, farm: 0, carpenter: 0, lumbermill: 0, barracks: 0, mine: 0, tavern: 0, market: 0, walls: 0, siege: 0, townsqr: 0};
+var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, free: 0};
+var monthlyIncome = {lumberRate: 0, foodRate: 0, stoneRate: 0, goldRate: 0};
 
-// Returns Cookie Value off name.
-function getCookie(name)
-{
-    var nameEQ = name + "=";
-    var ca = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++)
-    {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEq.length,c.length);
-    }
-    return null;
-}
-
-// Deletes Cookies for Reset
-function eraseCookie(name) 
-{
-    document.cookie = name + '=; Max-Age = -99999999;';
-}
-
-function gameStartCookies()
-{
-    inicializeCookie(monthTime, 0, 1);
-    inicializeCookies(lumberResource, 0, 1);
-    inicializeCookies(foodResource, 0, 1);
-    inicializeCookies(stoneResource, 0, 1);
-    inicializeCookies(goldResource, 0, 1);
-
-    inicializeCookies(housesNum, 0, 1);
-    inicializeCookies(citizensNum, 0, 1);
-    inicializeCookies(soldiersNum, 0, 1);
-    inicializeCookies(satisfaction, 0.75, 1);
-
-    inicializeCookies(workersFarm, 0, 1);
-    inicializeCookies(workersLumber, 0, 1);
-    inicializeCookies(workersSoldier, 0, 1);
-    inicializeCookies(workersMine, 0, 1);
-    inicializeCookies(workersTavern, 0, 1);
-    inicializeCookies(workersArcher, 0, 1);
-
-    inicializeCookies(weaponsNum, 0, 1);
-    inicializeCookies(landNum, 0, 1);
-
-    inicializeCookies(houseBuilding, 1, 1);
-    inicializeCookies(farmBuilding, 0, 1);
-    inicializeCookies(carpenterBuilding, 0, 1);
-    inicializeCookies(lumberBuilding, 0, 1);
-    inicializeCookies(barracksBuilding, 0, 1);
-    inicializeCookies(mineBuilding, 0, 1);
-    inicializeCookies(tavernBuilding, 0, 1);
-    inicializeCookies(marketBuilding, 0, 1);
-    inicializeCookies(wallsBuilding, 0, 1);
-    inicializeCookies(siegeBuilding, 0, 1);
-    inicializeCookies(townsqBuilding, 0, 1);
-
-    inicializeCookies(lumberRate, 0, 1);
-    inicializeCookie(foodRate, 0, 1);
-    inicializeCookie(stoneRate, 0, 1);
-    inicializeCookie(goldRate, 0, 1);
-}
+var SOLDIER_FACTORS = {GOLD_TRAIN_SOLDIER: 20, WEAPON_TRAIN_SOLDIER: 1, MONTHLY_SOLDIER_WAGE: 5}
+var CITIZEN_FACTORS = {CIT_PER_HOUSE: 5, HOUSES_PER_LAND: 20, FOOD_PER_CIT: 1, GOLD_TRAIN_SOLDIER: 20, WEAPON_TRAIN_SOLDIER}
 
 // Game Start Time keeping Program
 function main() 
@@ -121,7 +59,7 @@ function buildHouse(housesNum, landNum, lumberResource)
     {
         housesNum += 1;
         lumberResource -= HOUSE_COST;
-        
+
         return housesNum;
     }
     if (lumberResource < houseCost)
