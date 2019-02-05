@@ -1,49 +1,52 @@
 // Factors For Gameplay, Constant Variables, Adjusted for Balancing
-const TIME_FACTORS = {MONTHS_PER_MIN: 1};
+var TIME_FACTORS = Object.freeze({MONTHS_PER_MIN: 1, VAR: 1});
 
-const LUMBER_FACTORS  = {WORTH: 2};
-const FOOD_FACTORS    = {WORTH: 1};
-const STONE_FACTORS   = {WORTH: 3};
-const GOLD_FACTORS    = {WORTH: 1};
-const WEAPON_FACTORS  = {WORTH: 20, STONE_COST: 5, GOLD_COST: 5};
+var LUMBER_FACTORS  = Object.freeze({WORTH: 2});
+var FOOD_FACTORS    = Object.freeze({WORTH: 1});
+var STONE_FACTORS   = Object.freeze({WORTH: 3});
+var GOLD_FACTORS    = Object.freeze({WORTH: 1});
+var WEAPON_FACTORS  = Object.freeze({WORTH: 20, STONE_COST: 5, GOLD_COST: 5, DEFENCE: 0.01});
 
-const LAND_FACTORS    = {SQR_MILES: 25};
-const SOLDIER_FACTORS = {GOLD_TRAIN: 20, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.01};
-const ARCHER_FACTORS  = {GOLD_TRAIN: 50, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.02};
-const CATAPULT_FACTORS = {GOLD_TRAIN: 100, LUMBER_COST: 50, SOLIDER_COST: 2, BOOST: .05, MONTHLY_WAGE: 10};
-const CITIZEN_FACTORS = {FOOD_NEEDS: 1, CIT_INCOME: 10, BASE_SATISFACTION: 0.6, TAX_TO_SAT: 5, VISITORS: 0.25};
+var LAND_FACTORS     = Object.freeze({SQR_MILES: 25});
+var SOLDIER_FACTORS  = Object.freeze({GOLD_TRAIN: 20, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.02, PER_CIT: 20});
+var ARCHER_FACTORS   = Object.freeze({GOLD_TRAIN: 50, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.04});
+var CATAPULT_FACTORS = Object.freeze({GOLD_TRAIN: 100, LUMBER_COST: 50, SOLIDER_COST: 2, BOOST: .08, MONTHLY_WAGE: 10});
+var CITIZEN_FACTORS  = Object.freeze({FOOD_NEEDS: 1, CIT_INCOME: 10, BASE_SATISFACTION: 0.6, TAX_TO_SAT: 5, VISITORS: 0.25});
 
-const GATHER_WOOD_FACTORS = {LUMBER: 20, TIME: .08, COOLDOWN_BOOL: 1};
-const HUNT_FACTORS        = {FOOD: 10,   TIME: 0.5, COOLDOWN_BOOL: 1};
-const TOWN_FAIR_FACTORS   = {FOOD: 100, GOLD: 50, SAT_BOOST: 0.1, TIME: 0.5, COOLDOWN_BOOL: 1, BOOST_LAST: 5, LOSS_BOOL: 0};
+var GATHER_WOOD_FACTORS = Object.freeze({LUMBER: 20, TIME: .08, COOLDOWN_BOOL: 1});
+var HUNT_FACTORS        = Object.freeze({FOOD: 10,   TIME: 0.5, COOLDOWN_BOOL: 1});
+var TOWN_FAIR_FACTORS   = Object.freeze({FOOD: 100, GOLD: 50, SAT_BOOST: 0.1, TIME: 0.5, COOLDOWN_BOOL: 1, BOOST_LAST: 5, LOSS_BOOL: 0});
 
-const HOUSE_FACTORS    = {PER_LAND: 20, LUMBER_COST: 100, BEDS: 5};
-const FARM_FACTORS     = {PER_LAND: 5,  LUMBER_COST: 200, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2};
-const CW_FACTORS       = {PER_LAND: 1,  LUMBER_COST: 300};
-const LM_FACTORS       = {PER_LAND: 2,  LUMBER_COST: 300, WORKER_SLOTS: 5,  INCOME_PER_WORKER: 30};
-const BRK_FACTORS      = {PER_LAND: 1,  LUMBER_COST: 200, STONE_COST: 100};
-const MINE_FACTORS     = {PER_LAND: 2,  LUMBER_COST: 100, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2};
-const TAVERN_FACTORS   = {PER_LAND: 1,  LUMBER_COST: 400, STONE_COST: 300,  WORKER_SLOTS: 3, INCOME_PER_WORKER: 5, SAT_BOOST: 0.1};
-const MARKET_FACTORS   = {PER_LAND: 1,  LUMBER_COST: 200, GOLD_COST: 200,   GOLD_INCOME: 30, SAT_BOOST: 0.05};
-const WALL_FACTORS     = {PER_LAND: 5,  LUMBER_COST: 300, STONE_COST: 500,  DEFENCE_BONUS: 0.1};
-const SIEGE_FACTORS    = {PER_LAND: 1,  LUMBER_COST: 300, STONE_COST: 500,  GOLD_COST: 200};
-const TOWN_SQR_FACTORS = {PER_LAND: 1,  LUMBER_COST: 50,  GOLD_COST: 50,    POPULATION: 30, SAT_BOOST: 0.05};
+var HOUSE_FACTORS    = Object.freeze({PER_LAND: 20, LUMBER_COST: 100, BEDS: 5});
+var FARM_FACTORS     = Object.freeze({PER_LAND: 5,  LUMBER_COST: 200, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2});
+var CW_FACTORS       = Object.freeze({PER_LAND: 1,  LUMBER_COST: 300});
+var LM_FACTORS       = Object.freeze({PER_LAND: 2,  LUMBER_COST: 300, WORKER_SLOTS: 5,  INCOME_PER_WORKER: 30});
+var BRK_FACTORS      = Object.freeze({PER_LAND: 1,  LUMBER_COST: 200, STONE_COST: 100});
+var MINE_FACTORS     = Object.freeze({PER_LAND: 2,  LUMBER_COST: 100, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2});
+var TAVERN_FACTORS   = Object.freeze({PER_LAND: 1,  LUMBER_COST: 400, STONE_COST: 300,  WORKER_SLOTS: 3, INCOME_PER_WORKER: 5, SAT_BOOST: 0.1});
+var MARKET_FACTORS   = Object.freeze({PER_LAND: 1,  LUMBER_COST: 200, GOLD_COST: 200,   GOLD_INCOME: 30, SAT_BOOST: 0.05});
+var WALL_FACTORS     = Object.freeze({PER_LAND: 5,  LUMBER_COST: 300, STONE_COST: 500,  DEFENCE_BONUS: 0.15});
+var SIEGE_FACTORS    = Object.freeze({PER_LAND: 1,  LUMBER_COST: 300, STONE_COST: 500,  GOLD_COST: 200});
+var TOWN_SQR_FACTORS = Object.freeze({PER_LAND: 1,  LUMBER_COST: 50,  GOLD_COST: 50,    POPULATION: 30, SAT_BOOST: 0.05});
 
-const DISASTER_FACTORS = {FIRE: 0.1, INVASION: 0.1, ROBBERS: 0.1, STORM: 0.1, PLAGUE: 0.1, FAMINE: 0.1, BEASTS: 0.1};
-const BANKRUPT_FACTORS = {SAT_DEPRESSION: .1}
-const STARVE_FACTORS = {SAT_DEPRESSION: .30}
-const PLAGUE_FACTORS = {CIT_LOSS = 0.25};
-const FAMINE_FACTORS = {FOOD_LOSS = 0.5};
-const BEASTS_FACTORS = {CIT_LOSS = 0.2};
+var DISASTER_FACTORS = Object.freeze({DISASTER_CHANCE: 0.1, INVASION: 0.1, FIRE: 0.1, ROBBERS: 0.1, STORM: 0.1, PLAGUE: 0.1, FAMINE: 0.1, BEASTS: 0.1, DEPRESSION_YEARS: 5});
+var BANKRUPT_FACTORS = Object.freeze({SAT_DEPRESSION: .1});
+var STARVE_FACTORS = Object.freeze({SAT_DEPRESSION: .30});
+var PLAGUE_FACTORS = Object.freeze({CIT_LOSS: 0.25});
+var FAMINE_FACTORS = Object.freeze({FOOD_LOSS: 0.5});
+var BEASTS_FACTORS = Object.freeze({CIT_LOSS: 0.2});
 
 // Inicializing In-Game Variables
 var monthTime = 0;
+var dayTime = 0;
 var resourceStat = {lumber: 0, food: 0, stone: 0, gold: 0, weaponsNum: 0, landNum: 0};
 var citizensStat = {population: 2, satisfaction: 0.75, taxRate: 0.00};
 var buildingNum = {houses: 1, farm: 0, carpenter: 0, lumbermill: 0, barracks: 0, mine: 0, tavern: 0, market: 0, walls: 0, siege: 0, townsqr: 0};
 var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, catapult: 0, free: 0};
 var monthlyIncome = {lumberRate: 0, foodRate: 0, stoneRate: 0, goldRate: 0};
 var chancesRatios = {defense: 0.0}
+var pageSelection = ["mainPage", "statPage", "buildPage", "armyPage"];
+var pageIndex = 0;
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 //-----------------------------------------------------------------TIME------------------------------------------------------------------------------------------------------------
@@ -53,27 +56,40 @@ var chancesRatios = {defense: 0.0}
 function main() 
 {
     //Time Tracking
+    var gameOn = 1;
     var gameDone = 0;
     var startTime = Date.now();
+    var i = 0;
 
-    while (!gameDone)
+    while (gameOn)
     {
-        monthChangeCheck = monthTime;
+        i = i + 1;
+        var monthChangeCheck = monthTime;
         monthTime = Math.floor((Date.now() - startTime) / (60000 * TIME_FACTORS.MONTHS_PER_MIN));
+        dayTime = Math.floor((Date.now() - startTime) / (1935.48 * TIME_FACTORS.MONTHS_PER_MIN));
         
-        monthlyIncome();
         satisfactionUpdates();
+        //monthlyIncome();
 
         if (newMonth != monthTime)
         {
+            dayTime = 0;
             newMonth();
             immigrationChance();
         }
+
+        if (dayTime == 15)
+        {
+            disasterChance();
+        }
         
-        updateStats()
+        updateStats();
+        defenceUpdates();
+        gameOn = winLoseCheck();
+        logTime(i);
     }
-
-
+    logTime(999);
+    return 1;
 }
 
 // Function for Cooldowns
@@ -116,7 +132,7 @@ function monthlyIncome()
     goldIncome -= (laborDistribution.catapult * CATAPULT_FACTORS.MONTHLY_WAGE);
     monthlyIncome.goldRate = Math.round(goldIncome);
 
-    return null;
+    return 1;
 }
 
 function satisfactionUpdates()
@@ -125,17 +141,31 @@ function satisfactionUpdates()
     baseSatisfaction += (buildingNum.tavern * TAVERN_FACTORS.SAT_BOOST);
     baseSatisfaction += (buildingNum.market * MARKET_FACTORS.SAT_BOOST);
     baseSatisfaction += (buildingNum.townsqr * TOWN_SQR_FACTORS.SAT_BOOST);
-    baseSatisfaction -= (citizensStat.taxRate * TAX_TO_SAT);
+    baseSatisfaction -= (citizensStat.taxRate * CITIZEN_FACTORS.TAX_TO_SAT);
     citizensStat.satisfaction = baseSatisfaction;
+    return null;
+}
+
+function defenceUpdates()
+{
+    var defenceStats = 0.0;
+    defenceStats += (laborDistribution.soldier * SOLDIER_FACTORS.BOOST);
+    defenceStats += (laborDistribution.archer * ARCHER_FACTORS.BOOST);
+    defenceStats += (laborDistribution.catapult * CATAPULT_FACTORS.BOOST);
+    defenceStats /= (citizensStat.population / SOLDIER_FACTORS.PER_CIT);
+    defenceStats += (buildingNum.walls * WALL_FACTORS.DEFENCE_BONUS);
+    defenceStats += (resourceStat.weaponsNum * WEAPON_FACTORS.DEFENCE)
+    
+    chancesRatios.defense = defenceStats;
     return null;
 }
 
 // Update User Stats
 function updateStats()
 {
-    document.getElementById("date").innerHTML = "Month: " + monthTime;
+    document.getElementById("date").innerHTML = "Month: " + monthTime + " Day: " + dayTime;
     document.getElementById("population").innerHTML = "Citizens: " + citizensStat.population;
-    document.getElementById("satisfaction").innerHTML = "Satisfaction: " + citizensStat.satisfaction + "%";
+    document.getElementById("satisfaction").innerHTML = "Satisfaction: " + (citizensStat.satisfaction * 100) + "%";
     document.getElementById("food").innerHTML = "Food: " + resourceStat.food;
     document.getElementById("lumber").innerHTML = "Lumber: " + resourceStat.lumber;
     document.getElementById("stone").innerHTML = "Stone: " + resourceStat.stone;
@@ -206,6 +236,7 @@ function newMonth()
     return null;
 }
 
+// Decides if citizens stay.
 function immigrationChance()
 {
     var newVisitors = citizensStat.population * CITIZEN_FACTORS.VISITORS;
@@ -230,8 +261,217 @@ function immigrationChance()
     {
         imgOutcome = immigrantCit + " were chose to stay."
     }
-    document.getElementById("notes").innerHTML = "Builder: The kingdom had " + newVisitors + " visitors, " + imgOutcome;
+    document.getElementById("notes").innerHTML = ("Builder: The kingdom had " + newVisitors + " visitors, " + imgOutcome);
+    citizensStat.population += immigrantCit;
     return null;
+}
+
+// Decides if disaster strikes.
+function disasterChance()
+{
+    if (DISASTER_FACTORS.INVASION > Math.random())
+    {
+        if (citizensStat.population <= 30)
+        {
+            disasterRobbers();
+            return null;
+        }
+        else 
+        {
+            disasterInvasion();
+            return null;
+        }
+    }
+    else if (DISASTER_FACTORS.DISASTER_CHANCE >= Math.random())
+    {
+        disasterSelect = 4 % Math.round(10 * Math.random());
+        switch (disasterSelect)
+        {
+            case 0:
+                disasterFamine();
+                break;
+            case 1:
+                disasterFire();
+                break;
+            case 2:
+                disasterStorm();
+                break;
+            case 3:
+                disasterPlague();
+                break;
+            default:
+        }
+    }
+    else
+    {
+        return null;
+    }
+}
+
+function winLoseCheck()
+{
+    var gameDone = 1;
+    if (citizensStat.population < 1)
+    {
+        gameDone = 0;
+        document.getElementById("notes").innerHTML = "Builder: Our people have starved themselves do death, you have doomed us.";
+        return gameDone;
+    }
+    if (citizensStat.satisfaction < .05)
+    {
+        gameDone = 0;
+        document.getElementById("notes").innerHTML = "Builder: The people are dissatisfied, we had decided you are not fit to rule us.";
+        return gameDone;
+    }
+    return gameDone;
+}
+
+function logTime(num)
+{
+    document.getElementById("log").innerHTML = num;
+    return null;
+}
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------BUTTONS---------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+function mainPage()
+{
+    document.getElementById("button1").innerHTML = "Gather Wood";
+    return null;
+}
+
+function advisorPage()
+{
+
+    return null;
+}
+
+function button1Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
+}
+
+function button2Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
+}
+
+function button3Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
+}
+
+function button4Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
+}
+
+function button5Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
+}
+
+function button6Press()
+{
+    if (pageSelection[pageIndex] = "mainPage")
+    {
+
+        return null;
+    }
+    if (pageSelection[pageIndex] = "statPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "buildPage")
+    {
+        return null;
+    }
+    if (pageSelection[pageIndex] = "armyPage")
+    {
+        return null;
+    }
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -759,11 +999,180 @@ function buildTownSquare()
     }
 }
 
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------DISASTER--------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+function disasterInvasion()
+{
+    var invasionStrength = Math.random();
+
+    var invasionCasualties = (citizensStat.population * invasionStrength) / (chancesRatios.defense * 10);
+    if (invasionCasualties > citizensStat.population * 0.75)
+    {
+        document.getElementById("notes").innerHTML = "Builder: The village was attack...very few survived. Dead: " + invasionCasualties;
+    }
+    else if (invasionCasualties > citizensStat.population * .50)
+    {
+        document.getElementById("notes").innerHTML = "Builder: The villiage was attacked, they killed so many... Dead: " + invasionCasualties;
+    }
+    else if (invasionCasualties > citizensStat.population * .30)
+    {
+        document.getElementById("notes").innerHTML = "Builder: The villiage was attacked, we were able to push the invaders back with heavy casualties. Dead: " + invasionCasualties;
+    }
+    else if (invasionCasualties > citizensStat.population * .20)
+    {
+        document.getElementById("notes").innerHTML = "Builder: We were invaded. Our people fought hard and pushed them back. Dead: " + invasionCasualties;
+    }
+    else if (invasionCasualties > citizensStat.population * .10)
+    {
+        document.getElementById("notes").innerHTML = "Builder: We were invaded, the attack was foolish and casualties were low. Dead: " + invasionCasualties;
+    }
+    else
+    {
+        document.getElementById("notes").innerHTML = "Builder: We were invaded, but they underestimated our strength! We held them with minimum casualties. Dead: " + invasionCasualties;
+    }
+    citizenDeath(invasionCasualties);
+
+
+
+    return null;
+}
+
+function disasterRobbers()
+{
+    return null;
+}
+
+function disasterFire()
+{
+    return null;
+}
+
+function disasterStorm()
+{
+    return null;
+}
+
+function disasterPlague()
+{
+    return null;
+}
+
+function disasterFamine()
+{
+    return null;
+}
+
+function disasterBeasts()
+{
+    return null;
+}
+
+function citizenDeath(deaths)
+{
+    var depressionFactor = deaths / citizensStat.population;
+    citizensStat.satisfaction -= depressionFactor;
+
+    for (var i = 0; i < deaths; i++)
+    {
+        if (laborDistribution.free > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.free -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.catapult > 0)
+        {
+            citizensStat.population -= 2;
+            laborDistribution.catapult -= 1;
+            ++i;
+            continue;
+        }
+        else if (laborDistribution.soldier > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.soldier -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.archer > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.archer -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.farm > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.farm -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.lumber > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.lumber -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.mine > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.mine -= 1;
+
+            continue;
+        }
+        else if (laborDistribution.tavern > 0)
+        {
+            citizensStat.population -= 1;
+            laborDistribution.tavern -= 1;
+
+            continue;
+        }
+        else 
+        {
+            citizensStat.population -= 1;
+            continue;
+        }
+    }
+    for (var i = 0; i < DEPRESSION_YEARS; i++)
+    {
+        depressionCooldown = 0;
+        depressionCooldown = cooldownTimer(1)
+        while (!depressionCooldown)
+        {
+            
+        }
+        if (depressionCooldown)
+        {
+            citizensStat.satisfaction += depressionFactor / DEPRESSION_YEARS;
+        }
+    }
+    return null;
+}
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
     /*
+
+    var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, catapult: 0, free: 0};
+
+
+    const DISASTER_FACTORS = {DISASTER_CHANCE: 0.1, INVASION: 0.1, FIRE: 0.1, ROBBERS: 0.1, STORM: 0.1, PLAGUE: 0.1, FAMINE: 0.1, BEASTS: 0.1};
+const BANKRUPT_FACTORS = {SAT_DEPRESSION: .1}
+const STARVE_FACTORS = {SAT_DEPRESSION: .30}
+const PLAGUE_FACTORS = {CIT_LOSS = 0.25};
+const FAMINE_FACTORS = {FOOD_LOSS = 0.5};
+const BEASTS_FACTORS = {CIT_LOSS = 0.2};
+    
+    
+    
+    
     var location = [1, 1]
     document.getElementById("location").innerHTML = location[0];
 
