@@ -1,69 +1,594 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="../CSS/program.css" />
-    <script type="text/javascript" src="../javaScript/program.js"></script>
-    <title>Sovereign</title>
-    
-</head>
+    <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="../CSS/program.css" />
+        <metta charset="utf-8" />
+        <style>
+        * { padding: 0; margin: 0; }
+        canvas { background: rgb(180, 180, 180); display: block; margin: 0 auto; }
+        </style>
+        <script>
+        windowWidth = window.innerWidth;
+        windowHeight = window.innerHeight;
+        </script>
+        <title>Sovereign</title>
+    </head>
+    <body background="">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light navbar navbar-dark bg-dark">
+                <a class="navbar-brand" href="#">SOVEREIGN</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                    <a class="nav-link" href="../index.html">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="about.html">About</a>
+                    </li>
+                </ul>
+                </div>
+        </nav>
+        
+        <p id="demo"></p>
+        <canvas id="gameCanvas"></canvas>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light navbar navbar-dark bg-dark">
-          <a class="navbar-brand" href="#">SOVEREIGN</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-              <li class="nav-item active">
-                <a class="nav-link" href="../index.html">Home <span class="sr-only">(current)</span></a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="about.html">About</a>
-              </li>
-            </ul>
-          </div>
-    </nav>
+    <script>
+        // Canvas Drawing Variables
+        var canvas = document.getElementById("gameCanvas");
+        var ctx = canvas.getContext("2d");
 
-  <script src="../javaScript/program.js"></script>
-  
-  <button id="Main" type="button">Click Me!</button>
+        // Factors For Gameplay, Constant Variables, Adjusted for Balancing
+        var LUMBER_FACTORS  = Object.freeze({WORTH: 2});
+        var FOOD_FACTORS    = Object.freeze({WORTH: 1});
+        var STONE_FACTORS   = Object.freeze({WORTH: 3});
+        var GOLD_FACTORS    = Object.freeze({WORTH: 1});
+        var WEAPON_FACTORS  = Object.freeze({WORTH: 20, STONE_COST: 5, GOLD_COST: 5, DEFENCE: 0.01});
 
-  <button type="button" onclick="main()">Try it</button>
-<p id="date" class="stats"></p>
-<p id="population" class="stats"></p>
-<p id="satisfaction" class="stats"></p>
-<p id="food" class="stats"></p>
-<p id="lumber" class="stats"></p>
-<p id="stone" class="stats"></p>
-<p id="wealth" class="stats"></p>
-<p id="weapons" class="stats"></p>
+        var LAND_FACTORS     = Object.freeze({SQR_MILES: 25});
+        var SOLDIER_FACTORS  = Object.freeze({GOLD_TRAIN: 20, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.02, PER_CIT: 20});
+        var ARCHER_FACTORS   = Object.freeze({GOLD_TRAIN: 50, WEAPON_TRAIN: 1, MONTHLY_WAGE: 5, BOOST: 0.04});
+        var CATAPULT_FACTORS = Object.freeze({GOLD_TRAIN: 100, LUMBER_COST: 50, SOLIDER_COST: 2, BOOST: .08, MONTHLY_WAGE: 10});
+        var CITIZEN_FACTORS  = Object.freeze({FOOD_NEEDS: 1, CIT_INCOME: 10, BASE_SATISFACTION: 0.6, TAX_TO_SAT: 5, VISITORS: 0.25});
+        var TOWN_TYPES = ["HAMLET", "TOWN", "VILLIAGE", "KINGDOM"];
 
-<p id="foodRate" class="stats"></p>
-<p id="lumberRate" class="stats"></p>
-<p id="stoneRate" class="stats"></p>
-<p id="wealthRate" class="stats"></p>
+        var GATHER_WOOD_FACTORS = Object.freeze({LUMBER: 20, TIME: .08, COOLDOWN_BOOL: 1});
+        var HUNT_FACTORS        = Object.freeze({FOOD: 10,   TIME: 0.5, COOLDOWN_BOOL: 1});
+        var TOWN_FAIR_FACTORS   = Object.freeze({FOOD: 100, GOLD: 50, SAT_BOOST: 0.1, TIME: 0.5, COOLDOWN_BOOL: 1, BOOST_LAST: 5, LOSS_BOOL: 0});
 
-<p id="log" class="stats"></p>
+        var HOUSE_FACTORS    = Object.freeze({PER_LAND: 20, LUMBER_COST: 100, BEDS: 5});
+        var FARM_FACTORS     = Object.freeze({PER_LAND: 5,  LUMBER_COST: 200, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2});
+        var CW_FACTORS       = Object.freeze({PER_LAND: 1,  LUMBER_COST: 300});
+        var LM_FACTORS       = Object.freeze({PER_LAND: 2,  LUMBER_COST: 300, WORKER_SLOTS: 5,  INCOME_PER_WORKER: 30});
+        var BRK_FACTORS      = Object.freeze({PER_LAND: 1,  LUMBER_COST: 200, STONE_COST: 100});
+        var MINE_FACTORS     = Object.freeze({PER_LAND: 2,  LUMBER_COST: 100, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2});
+        var TAVERN_FACTORS   = Object.freeze({PER_LAND: 1,  LUMBER_COST: 400, STONE_COST: 300,  WORKER_SLOTS: 3, INCOME_PER_WORKER: 5, SAT_BOOST: 0.1});
+        var MARKET_FACTORS   = Object.freeze({PER_LAND: 1,  LUMBER_COST: 200, GOLD_COST: 200,   GOLD_INCOME: 30, SAT_BOOST: 0.05});
+        var WALL_FACTORS     = Object.freeze({PER_LAND: 5,  LUMBER_COST: 300, STONE_COST: 500,  DEFENCE_BONUS: 0.15});
+        var SIEGE_FACTORS    = Object.freeze({PER_LAND: 1,  LUMBER_COST: 300, STONE_COST: 500,  GOLD_COST: 200});
+        var TOWN_SQR_FACTORS = Object.freeze({PER_LAND: 1,  LUMBER_COST: 50,  GOLD_COST: 50,    POPULATION: 30, SAT_BOOST: 0.05});
 
-<p id="notes"></p>
+        var DISASTER_FACTORS = Object.freeze({DISASTER_CHANCE: 0.1, INVASION: 0.1, FIRE: 0.1, ROBBERS: 0.1, STORM: 0.1, PLAGUE: 0.1, FAMINE: 0.1, BEASTS: 0.1, DEPRESSION_YEARS: 5});
+        var BANKRUPT_FACTORS = Object.freeze({SAT_DEPRESSION: .1});
+        var STARVE_FACTORS = Object.freeze({SAT_DEPRESSION: .30});
+        var PLAGUE_FACTORS = Object.freeze({CIT_LOSS: 0.25});
+        var FAMINE_FACTORS = Object.freeze({FOOD_LOSS: 0.5});
+        var BEASTS_FACTORS = Object.freeze({CIT_LOSS: 0.2});
+        
+        var MAP_PIECES = {};
+        var FOREST_MAP = {};
 
-<input id="button1" type="button" value="" onclick="button1Press();"/>
-<input id="button2" type="button" value="" onclick="button2Press();"/>
-<input id="button3" type="button" value="" onclick="button3Press();"/>
-<input id="button4" type="button" value="" onclick="button4Press();"/>
-<input id="button5" type="button" value="" onclick="button5Press();"/>
-<input id="button6" type="button" value="" onclick="button6Press();"/>
+        var MENU_BUTTONS_NUM = 6;
 
-<script>document.getElementById("Main").onclick = main();</script>
+        var PAGE_DETAILS = ["Home", "Stats", "Build", "Army", "PAGE1", "PAGE2"];
+        var TAB_COLOR_IDLE = ["#423c00", "#000642", "#00421c", "#420007", "#230042", "#421f00"];
+        var TAB_COLOR_SELECTED = ["#fff591", "#91acff", "#91ffa1", "#ff9191", "#d191ff", "#ffc991"];
+        var BACK_COLOR = ["#706b39", "#395170", "#39703f", "#703939", "#603970", "#705339"];
 
-</body>
+        // Inicializing In-Game Variables
+        var secondsTime = 0;
+        var yearTime = 0;
+        var monthTime = 0;
+        var dayTime = 0;
 
-<div class="footer">
-    <p>
-      <a href="https://github.com/andyruwruw/cproj2.git">Website Github</a>
-    </p>
-  </div>
+        var currentPage = PAGE_DETAILS[0];
 
+        var resourceStat = {lumber: 0, food: 0, stone: 0, gold: 0, weaponsNum: 0, landNum: 0};
+        var citizensStat = {population: 2, satisfaction: 0.75, taxRate: 0.00};
+        var buildingNum = {houses: 1, farm: 0, carpenter: 0, lumbermill: 0, barracks: 0, mine: 0, tavern: 0, market: 0, walls: 0, siege: 0, townsqr: 0};
+        var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, catapult: 0, free: 0};
+        var monthlyIncome = {lumberRate: 0, foodRate: 0, stoneRate: 0, goldRate: 0};
+        var chancesRatios = {defense: 0.0}
+
+        var sideNotes = [];
+        var clickLocation = {x: 0, y: 0}
+
+        function splitDate()
+        {
+            if (monthTime > 11)
+            {
+                yearTime += 1;
+                monthTime = 0;
+            }
+            if (dayTime > 31)
+            {
+                monthTime += 1;
+                dayTime = 0;
+                newMonth();
+                immigrationChance();
+                disasterChance();
+            }
+            if (secondsTime > 1.9354837)
+            {
+                dayTime += 1;
+                secondsTime = 0;
+                for (var i = 0; i < sideNotes.length; i++)
+                {
+                    sideNotes[i].time -= 1;
+                }
+            }
+        }
+
+        function drawStats ()
+        {
+            statOutputX = (ctx.canvas.width * 0.22);
+            nextRowX = (ctx.canvas.width * 0.22);
+            dateX = (ctx.canvas.width - (ctx.canvas.width * .3));
+            cityTypeY = (((ctx.canvas.width / 3) * 4) * 0.037);
+            nextRowY = (((ctx.canvas.width / 3) * 4) * 0.015);
+            resourcesY = (((ctx.canvas.width / 3) * 4) * 0.025);
+            rateRowFactor = 1.55;
+
+            ctx.font='bold 50px Courier New';
+            ctx.fillStyle = "#000000";
+            if (citizensStat.population < 20)
+            {
+                ctx.fillText(TOWN_TYPES[0], statOutputX, cityTypeY);
+            }
+            else if (citizensStat.population < 50)
+            {
+                ctx.fillText(TOWN_TYPES[1], statOutputX, cityTypeY);
+            }
+            else if (citizensStat.population < 100)
+            {
+                ctx.fillText(TOWN_TYPES[2], statOutputX, cityTypeY);
+            }
+            else
+            {
+                ctx.fillText(TOWN_TYPES[3], statOutputX, cityTypeY);
+            }
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Population:   " + citizensStat.population, statOutputX, resourcesY + (2 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Satisfaction: " + (citizensStat.satisfaction * 100) + "%", statOutputX, resourcesY + (3 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Food:   " + resourceStat.food, statOutputX + nextRowX, resourcesY);
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Lumber: " + resourceStat.lumber, statOutputX + nextRowX, resourcesY + nextRowY);
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Stone:  " + resourceStat.stone, statOutputX + nextRowX, resourcesY + (2 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Gold:   " + resourceStat.gold, statOutputX + nextRowX, resourcesY + (3 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#919191";
+            ctx.fillText("+" + monthlyIncome.foodRate, statOutputX + (rateRowFactor * nextRowX), resourcesY);
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#919191";
+            ctx.fillText("+" + monthlyIncome.lumberRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + nextRowY);
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#919191";
+            ctx.fillText("+" + monthlyIncome.stoneRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + (2 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#919191";
+            ctx.fillText("+" + monthlyIncome.goldRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + (3 * nextRowY));
+
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Date: " + yearTime + " Years " + monthTime + " Months " + Math.floor(dayTime) + " Days", dateX, resourcesY);
+        }
+
+        function drawGrid()
+        {
+            for (var i = 0; i < 6; i++)
+            {
+                if (currentPage == PAGE_DETAILS[i])
+                {
+                    ctx.fillStyle = BACK_COLOR[i];
+                }
+            }
+            ctx.fillRect((canvas.width * 0.2), (canvas.height * .15) + (canvas.height * .0544), (canvas.width - (canvas.width * 0.2)), canvas.height - ((canvas.height * .15) + (canvas.height * .0544)));
+
+            ctx.fillStyle = "#000000";
+            ctx.fillRect((canvas.width * 0.2), 0, ((canvas.width) * 0.004), canvas.height);
+
+            ctx.fillStyle = "#000000";
+            ctx.fillRect((canvas.width * 0.2), (canvas.height * .15), (canvas.width - (canvas.width * 0.2)), (canvas.height * 0.004));
+
+            ctx.fillStyle = "#000000";
+            ctx.fillRect((canvas.width * 0.2), (canvas.height * .15) + (canvas.height * .0541), (canvas.width - (canvas.width * 0.2)), (canvas.height * 0.004));
+
+            
+        }
+
+        function drawMenuButtons()
+        {
+            var menuX = (ctx.canvas.width * 0.01);
+            var menuNextX = (ctx.canvas.width * 0.1315);
+            var pageLight = 0;
+            for (var i = 0; i < 6; i++)
+            {
+                if (PAGE_DETAILS[i] == currentPage)
+                {
+                    pageLight = i;
+                }
+            }
+            for (var i = 0; i < MENU_BUTTONS_NUM; i++)
+            {
+                ctx.beginPath();
+                if (i == pageLight)
+                {
+                    ctx.fillStyle = TAB_COLOR_SELECTED[i];
+                }
+                else
+                {
+                    ctx.fillStyle = TAB_COLOR_IDLE[i];
+                }
+                ctx.fillRect((canvas.width * 0.21) + (i * menuNextX), ((canvas.height * .15) + (canvas.width * 0.01)), 155, 40);
+                ctx.closePath();
+            }
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[0])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[0].toUpperCase(), (canvas.width * 0.243), (canvas.height * .195));
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[1])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[1].toUpperCase(), (canvas.width * 0.3675), (canvas.height * .195));
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[2])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[2].toUpperCase(), (canvas.width * 0.5), (canvas.height * .195));
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[3])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[3].toUpperCase(), (canvas.width * 0.638), (canvas.height * .195));
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[4])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[4].toUpperCase(), (canvas.width * 0.765), (canvas.height * .195));
+
+            ctx.font='bold 30px Courier New';
+            ctx.fillStyle = "#999999";
+            if (currentPage == PAGE_DETAILS[5])
+            {
+                ctx.fillStyle = "#000000";
+            }
+            ctx.fillText(PAGE_DETAILS[5].toUpperCase(), (canvas.width * 0.896), (canvas.height * .195));
+        }
+
+        function screenRefresh() 
+        {
+            ctx.canvas.width = (window.innerHeight / 3) * 4;
+            ctx.canvas.height = window.innerHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            satisfactionUpdates();
+            defenceUpdates();
+
+            
+            drawStats();
+            drawNotes();
+            drawMenuButtons();
+            drawGrid();
+
+            // Tracks Time
+            splitDate();
+            secondsTime += 0.02;
+        }
+        
+        function drawNotes()
+        {
+            var notesX = (ctx.canvas.width * 0.01);
+            var notesStartY = (((ctx.canvas.width / 3) * 4) * 0.025);
+            var notesNextRowY = (((ctx.canvas.width / 3) * 4) * 0.005);
+            var rectangleBuffer = (ctx.canvas.width * 0.005);
+            var charLimit = 26;
+            
+            for (var i = 0; i < sideNotes.length; i++)
+            {
+                if (sideNotes[i].time < 1)
+                {
+                    sideNotes.splice(i, 1);
+                    if (i != 0)
+                    {
+                        i -= 1;
+                    }
+                }
+            }
+            var noteLines = 0;
+            for (var i = (sideNotes.length - 1); i >= 0; i--)
+            {
+                var stringLength = sideNotes[i].note.length;
+                ctx.beginPath();
+                ctx.rect(notesX - rectangleBuffer, notesStartY + (noteLines * notesNextRowY) - (2.5 * rectangleBuffer), 230, (27 * Math.round((stringLength / charLimit) + 0.5)));
+                ctx.fillStyle = "#4c4c4c";
+                ctx.fill();
+                ctx.closePath();
+                for (var j = 0; j < Math.round((stringLength / charLimit) + 0.5); j ++)
+                {
+                    ctx.font='bold 14px Courier New';
+                    ctx.fillStyle = "#e8e8e8";
+                    ctx.fillText(sideNotes[i].note.substring((j * charLimit), ((j * charLimit) + charLimit)), notesX, notesStartY + (j * notesNextRowY) + (noteLines * notesNextRowY));
+                    noteLines = noteLines + 2;
+                }
+                noteLines = noteLines + 8;
+            }
+        }
+
+        gameStart();
+        document.addEventListener("mousemove", mouseMoveHandler, false);
+
+        gameCanvas.onclick = function(e) {
+            if (e.pageX || e.pageY)
+            {
+                clickLocation.x = e.pageX;
+                clickLocation.y = e.pageY;
+            }
+            else {
+                clickLocation.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                clickLocation.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            clickLocation.x -= gameCanvas.offsetLeft;
+            clickLocation.y -= gameCanvas.offsetTop;
+            checkButtons(clickLocation.x, clickLocation.y);
+        }
+
+        function checkButtons(clickX, clickY)
+        {
+            var MENU_BUTTON_XY = {MENU1: {sx: (canvas.width * 0.21), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
+                                MENU2: {sx: (canvas.width * 0.21) + (ctx.canvas.width * 0.1315), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40},  
+                                MENU3: {sx: (canvas.width * 0.21) + (2 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
+                                MENU4: {sx: (canvas.width * 0.21) + (3 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
+                                MENU5: {sx: (canvas.width * 0.21) + (4 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
+                                MENU6: {sx: (canvas.width * 0.21) + (5 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}};
+
+            if ((clickX > MENU_BUTTON_XY.MENU1.sx) && (clickX < MENU_BUTTON_XY.MENU1.sx + MENU_BUTTON_XY.MENU1.lx) && (clickY > MENU_BUTTON_XY.MENU1.sy) && (clickY < MENU_BUTTON_XY.MENU1.sy + MENU_BUTTON_XY.MENU1.ly))
+            {
+                currentPage = PAGE_DETAILS[0];
+            }
+            else if ((clickX > MENU_BUTTON_XY.MENU2.sx) && (clickX < (MENU_BUTTON_XY.MENU2.sx + MENU_BUTTON_XY.MENU2.lx)) && (clickY > MENU_BUTTON_XY.MENU2.sy) && (clickY < (MENU_BUTTON_XY.MENU2.sy + MENU_BUTTON_XY.MENU2.ly)))
+            {
+                currentPage = PAGE_DETAILS[1];
+            }
+            else if ((clickX > MENU_BUTTON_XY.MENU3.sx) && (clickX < MENU_BUTTON_XY.MENU3.sx + MENU_BUTTON_XY.MENU3.lx) && (clickY > MENU_BUTTON_XY.MENU3.sy) && (clickY < MENU_BUTTON_XY.MENU3.sy + MENU_BUTTON_XY.MENU3.ly))
+            {
+                currentPage = PAGE_DETAILS[2];
+            }
+            else if ((clickX > MENU_BUTTON_XY.MENU4.sx) && (clickX < MENU_BUTTON_XY.MENU4.sx + MENU_BUTTON_XY.MENU4.lx) && (clickY > MENU_BUTTON_XY.MENU4.sy) && (clickY < MENU_BUTTON_XY.MENU4.sy + MENU_BUTTON_XY.MENU4.ly))
+            {
+                currentPage = PAGE_DETAILS[3];
+            }
+            else if ((clickX > MENU_BUTTON_XY.MENU5.sx) && (clickX < MENU_BUTTON_XY.MENU5.sx + MENU_BUTTON_XY.MENU5.lx) && (clickY > MENU_BUTTON_XY.MENU5.sy) && (clickY < MENU_BUTTON_XY.MENU5.sy + MENU_BUTTON_XY.MENU5.ly))
+            {
+                currentPage = PAGE_DETAILS[4];
+            }
+            else if ((clickX > MENU_BUTTON_XY.MENU6.sx) && (clickX < MENU_BUTTON_XY.MENU6.sx + MENU_BUTTON_XY.MENU6.lx) && (clickY > MENU_BUTTON_XY.MENU6.sy) && (clickY < MENU_BUTTON_XY.MENU6.sy + MENU_BUTTON_XY.MENU6.ly))
+            {
+                currentPage = PAGE_DETAILS[5];
+            }
+        }
+        
+        function mouseMoveHandler(e) {
+            var relativeX = e.clientX - canvas.offsetLeft;
+            if(relativeX > 0 && relativeX < canvas.width) 
+            {
+                mouseX = relativeX;
+            }
+            var relativeY = e.clientY - canvas.offsetHeight;
+            if(relativeY > 0 && relativeY < canvas.height)
+            {
+                mouseY = relativeX;
+            }
+        }
+
+        setInterval(screenRefresh, 10);
+
+        function newMonth()
+        {
+            resourceStat.lumber += monthlyIncome.lumberRate;
+            if ((resourceStat.food += monthlyIncome.foodRate) < 0)
+            {
+                resourceStat.food = 0;
+                citizensStat.population -= ((resourceStat.food += monthlyIncome.foodRate) / CITIZEN_FACTORS.FOOD_NEEDS);
+                sideNotes.push({note: "Builder: Sire, our people are dying of stavation, we lost " + ((resourceStat.food += monthlyIncome.foodRate) / CITIZEN_FACTORS.FOOD_NEEDS) + " good people.", time: 10});
+                citizensStat.satisfaction -= STARVE_FACTORS.SAT_DEPRESSION;
+            }
+            else
+            {
+                resourceStat.food += monthlyIncome.foodRate;
+            }
+            resourceStat.stone += monthlyIncome.stoneRate;
+            if ((resourceStat.gold += monthlyIncome.goldRate) < 0)
+            {
+                resourceStat.gold = 0;
+                var goldDebt = -(resourceStat.gold += monthlyIncome.goldRate);
+                for (var i = 0; i < goldDebt;)
+                {
+                    if (laborDistribution.catapult > 0)
+                    {
+                        laborDistribution.catapult -= 1;
+                        laborDistribution.free += 2;
+                        i + CATAPULT_FACTORS.MONTHLY_WAGE;
+                    }
+                    else if (laborDistribution.archer > 0)
+                    {
+                        laborDistribution.archer -= 1;
+                        laborDistribution.free += 1;
+                        i + ARCHER_FACTORS.MONTHLY_WAGE;
+                    }
+                    else if (laborDistribution.soldier > 0)
+                    {
+                        laborDistribution.soldier -= 1;
+                        laborDistribution.free += 1;
+                        i + SOLDIER_FACTORS.MONTHLY_WAGE;
+                    }
+                    else 
+                    {
+                        resourceStat.gold += monthlyIncome.goldRate;
+                    }
+                }
+                sideNotes.push({note: "Builder: Sire we cannot afford to pay our army, those who were not paid have left their posts", time: 10});
+                citizensStat.satisfaction -= BANKRUPT_FACTORS.SAT_DEPRESSION;
+            }
+            else
+            {
+                resourceStat.gold += monthlyIncome.goldRate;
+            }
+        }
+
+        function immigrationChance()
+        {
+            var newVisitors = Math.round(citizensStat.population * CITIZEN_FACTORS.VISITORS);
+            var availableBeds = (buildingNum.houses * HOUSE_FACTORS.BEDS) - citizensStat.population;
+            var possibleImg = newVisitors;
+            var imgOutcome = "but none were able to stay."
+            var immigrantCit = 0;
+            
+            if (availableBeds < newVisitors)
+            {
+                possibleImg = availableBeds;
+            }
+
+            for (var i = 0; i < possibleImg; i++)
+            {
+                if (Math.random() < citizensStat.satisfaction)
+                {
+                    immigrantCit += 1;
+                }
+            }
+            if (immigrantCit > 0)
+            {
+                imgOutcome = immigrantCit + " chose to    stay."
+            }
+            sideNotes.push({note: "Builder: The kingdom had  " + newVisitors + " visitors, " + imgOutcome, time: 10});
+            citizensStat.population += immigrantCit;
+        }
+
+        function disasterChance()
+        {
+            if (DISASTER_FACTORS.INVASION > Math.random())
+            {
+                if (citizensStat.population <= 30)
+                {
+                    disasterRobbers();
+                    return null;
+                }
+                else 
+                {
+                    disasterInvasion();
+                    return null;
+                }
+            }
+            else if (DISASTER_FACTORS.DISASTER_CHANCE >= Math.random())
+            {
+                disasterSelect = 4 % Math.round(10 * Math.random());
+                switch (disasterSelect)
+                {
+                    case 0:
+                        disasterFamine();
+                        break;
+                    case 1:
+                        disasterFire();
+                        break;
+                    case 2:
+                        disasterStorm();
+                        break;
+                    case 3:
+                        disasterPlague();
+                        break;
+                    default:
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        function satisfactionUpdates()
+        {
+            var baseSatisfaction = CITIZEN_FACTORS.BASE_SATISFACTION;
+            baseSatisfaction += (buildingNum.tavern * TAVERN_FACTORS.SAT_BOOST);
+            baseSatisfaction += (buildingNum.market * MARKET_FACTORS.SAT_BOOST);
+            baseSatisfaction += (buildingNum.townsqr * TOWN_SQR_FACTORS.SAT_BOOST);
+            baseSatisfaction -= (citizensStat.taxRate * CITIZEN_FACTORS.TAX_TO_SAT);
+            citizensStat.satisfaction = baseSatisfaction;
+        }
+
+        function defenceUpdates()
+        {
+            var defenceStats = 0.0;
+            defenceStats += (laborDistribution.soldier * SOLDIER_FACTORS.BOOST);
+            defenceStats += (laborDistribution.archer * ARCHER_FACTORS.BOOST);
+            defenceStats += (laborDistribution.catapult * CATAPULT_FACTORS.BOOST);
+            defenceStats /= (citizensStat.population / SOLDIER_FACTORS.PER_CIT);
+            defenceStats += (buildingNum.walls * WALL_FACTORS.DEFENCE_BONUS);
+            defenceStats += (resourceStat.weaponsNum * WEAPON_FACTORS.DEFENCE)
+            
+            chancesRatios.defense = defenceStats;
+            return null;
+        }
+
+        function gameStart()
+        {
+            sideNotes.push({note: "A stranger stumbles into  your home, she says she   can build things. She saysyou can help the people.", time: 10});
+        }
+
+    </script>
+
+
+    </body>
+
+    <div class="footer">
+        <p>
+            <a href="https://github.com/andyruwruw/cproj2.git">Website Github</a>
+        </p>
+    </div>
 </html>
