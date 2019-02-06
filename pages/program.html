@@ -41,6 +41,7 @@
         var ctx = canvas.getContext("2d");
 
         // Factors For Gameplay, Constant Variables, Adjusted for Balancing
+        // CHANGE WHATEVER YOU WANT CYRUS >:(
         var LUMBER_FACTORS  = Object.freeze({WORTH: 2});
         var FOOD_FACTORS    = Object.freeze({WORTH: 1});
         var STONE_FACTORS   = Object.freeze({WORTH: 3});
@@ -54,9 +55,9 @@
         var CITIZEN_FACTORS  = Object.freeze({FOOD_NEEDS: 1, CIT_INCOME: 10, BASE_SATISFACTION: 0.6, TAX_TO_SAT: 5, VISITORS: 0.25});
         var TOWN_TYPES = ["HAMLET", "TOWN", "VILLIAGE", "KINGDOM"];
 
-        var GATHER_WOOD_FACTORS = Object.freeze({LUMBER: 20, TIME: .08, COOLDOWN_BOOL: 1});
-        var HUNT_FACTORS        = Object.freeze({FOOD: 10,   TIME: 0.5, COOLDOWN_BOOL: 1});
-        var TOWN_FAIR_FACTORS   = Object.freeze({FOOD: 100, GOLD: 50, SAT_BOOST: 0.1, TIME: 0.5, COOLDOWN_BOOL: 1, BOOST_LAST: 5, LOSS_BOOL: 0});
+        var GATHER_WOOD_FACTORS = Object.freeze({LUMBER: 20, TIME: 5});
+        var HUNT_FACTORS        = Object.freeze({FOOD: 7,   TIME: 10});
+        var TOWN_FAIR_FACTORS   = Object.freeze({FOOD: 100, GOLD: 50, SAT_BOOST: 0.1, TIME: 30, BOOST_LAST: 5, LOSS_BOOL: 0});
 
         var HOUSE_FACTORS    = Object.freeze({PER_LAND: 20, LUMBER_COST: 100, BEDS: 5});
         var FARM_FACTORS     = Object.freeze({PER_LAND: 5,  LUMBER_COST: 200, WORKER_SLOTS: 10, INCOME_PER_WORKER: 2});
@@ -76,60 +77,74 @@
         var PLAGUE_FACTORS = Object.freeze({CIT_LOSS: 0.25});
         var FAMINE_FACTORS = Object.freeze({FOOD_LOSS: 0.5});
         var BEASTS_FACTORS = Object.freeze({CIT_LOSS: 0.2});
-        
-        var MAP_PIECES = {};
-        var FOREST_MAP = {};
 
         var MENU_BUTTONS_NUM = 6;
 
-        var PAGE_DETAILS = ["Home", "Stats", "Build", "Army", "PAGE1", "PAGE2"];
-        var TAB_COLOR_IDLE = ["#423c00", "#000642", "#00421c", "#420007", "#230042", "#421f00"];
-        var TAB_COLOR_SELECTED = ["#fff591", "#91acff", "#91ffa1", "#ff9191", "#d191ff", "#ffc991"];
-        var BACK_COLOR = ["#706b39", "#395170", "#39703f", "#703939", "#603970", "#705339"];
+        var PAGE_DETAILS = ["Home", "Stats", "Build", "Army", "Labor", "PAGE2"];
+        var HOME_DETAILS = [{name: "Gather Wood", enabled: 1, detail1: ("Lumber: +" + GATHER_WOOD_FACTORS.LUMBER), detail2: "",                                     detail3: ""}, 
+                            {name: "Hunt Food",   enabled: 1, detail1: ("Food: +" + HUNT_FACTORS.FOOD),            detail2: "",                                     detail3: ""}, 
+                            {name: "Make Weapon", enabled: 0, detail1: ("Stone: -" + WEAPON_FACTORS.STONE_COST),   detail2: ("Gold: -" + WEAPON_FACTORS.GOLD_COST), detail3: ""}, 
+                            {name: "Town Fair",   enabled: 0, detail1: ("Food: -" + TOWN_FAIR_FACTORS.FOOD),       detail2: ("Gold: -" + TOWN_FAIR_FACTORS.GOLD),   detail3: ("Defence: +" + WEAPON_FACTORS.DEFENCE)}];
+        var STAT_DETAILS = [];
 
-        // Inicializing In-Game Variables
-        var secondsTime = 0;
-        var yearTime = 0;
-        var monthTime = 0;
-        var dayTime = 0;
-
-        var currentPage = PAGE_DETAILS[0];
-
-        var resourceStat = {lumber: 0, food: 0, stone: 0, gold: 0, weaponsNum: 0, landNum: 0};
+        var resourceStat = {lumber: 100000, food: 6, stone: 10000, gold: 100000, weaponsNum: 0, landNum: 1};
         var citizensStat = {population: 2, satisfaction: 0.75, taxRate: 0.00};
         var buildingNum = {houses: 1, farm: 0, carpenter: 0, lumbermill: 0, barracks: 0, mine: 0, tavern: 0, market: 0, walls: 0, siege: 0, townsqr: 0};
         var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, catapult: 0, free: 0};
         var monthlyIncome = {lumberRate: 0, foodRate: 0, stoneRate: 0, goldRate: 0};
-        var chancesRatios = {defense: 0.0}
+        var chancesRatios = {defense: 0.0};
 
-        var sideNotes = [];
+        var landNum = 1;
+        
+        var BUILD_DETAILS = [{name:"House",          enabled: 1, printOut: [(buildingNum.houses + "/" + (HOUSE_FACTORS.PER_LAND * landNum)),     ("Lumber:                 -" + HOUSE_FACTORS.LUMBER_COST),    ("Beds:                     +" + HOUSE_FACTORS.BEDS)],                                                                    description: "  Increases max population.",    requires: "",                   maxCalc: 0}, 
+                            {name: "Farm",           enabled: 1, printOut: [(buildingNum.farm + "/" + (FARM_FACTORS.PER_LAND * landNum)),        ("Lumber:                 -" + FARM_FACTORS.LUMBER_COST),     ("Food:          +" + FARM_FACTORS.INCOME_PER_WORKER + " per Worker")],                                     description: "    A place to grow food.",        requires: "",                   maxCalc: 0}, 
+                            {name: "Workshop",       enabled: 1, printOut: [(buildingNum.carpenter + "/" + (CW_FACTORS.PER_LAND * landNum)),     ("Lumber:                 -" + CW_FACTORS.LUMBER_COST)],                                                                                                         description: "     Ables the builder.",           requires: "",                   maxCalc: 0},
+                            {name: "Town Square",    enabled: 0, printOut: [(buildingNum.townsqr + "/" + (TOWN_SQR_FACTORS.PER_LAND * landNum)), ("Lumber:                  -" + TOWN_SQR_FACTORS.LUMBER_COST), ("Gold:                    -" + TOWN_SQR_FACTORS.GOLD_COST)],                                                         description: "  Hold fairs for the town!",     requires: "     Requires: Workshop", maxCalc: 0}, 
+                            {name: "Lumber Mill",    enabled: 0, printOut: [(buildingNum.lumbermill + "/" + (LM_FACTORS.PER_LAND * landNum)),    ("Lumber:                 -" + LM_FACTORS.LUMBER_COST),       ("Lumber:        +" + LM_FACTORS.INCOME_PER_WORKER + " per Worker")],                                     description: "  Provides monthly lumber.",     requires: "     Requires: Workshop", maxCalc: 0},
+                            {name: "Mine",           enabled: 0, printOut: [(buildingNum.mine + "/" + (MINE_FACTORS.PER_LAND * landNum)),        ("Lumber:                 -" + MINE_FACTORS.LUMBER_COST),     ("Stone:         +" + MINE_FACTORS.INCOME_PER_WORKER + " per Worker")],                                    description: "   Provides monthly stone.",      requires: "     Requires: Workshop", maxCalc: 0},
+                            {name: "Tavern",         enabled: 0, printOut: [(buildingNum.tavern + "/" + (TAVERN_FACTORS.PER_LAND * landNum)),    ("Lumber:                 -" + TAVERN_FACTORS.LUMBER_COST),   ("Gold:          +" + TAVERN_FACTORS.INCOME_PER_WORKER + " per Worker")],                                   description: "  Villiagers will love it.",     requires: "     Requires: Workshop", maxCalc: 0},
+                            {name: "Market",         enabled: 0, printOut: [(buildingNum.market + "/" + (MARKET_FACTORS.PER_LAND * landNum)),    ("Lumber:                 -" + MARKET_FACTORS.LUMBER_COST),   ("Gold:                   -" + MARKET_FACTORS.GOLD_COST), ("Gold:          +" + MARKET_FACTORS.GOLD_INCOME + " per Month")],  description: "      A place to trade.",            requires: "     Requires: Workshop", maxCalc: 0},
+                            {name: "Barracks",       enabled: 0, printOut: [(buildingNum.barracks + "/" + (BRK_FACTORS.PER_LAND * landNum)),     ("Lumber:                 -" + BRK_FACTORS.LUMBER_COST),      ("Stone:                  -" + BRK_FACTORS.STONE_COST)],                                                            description: " Train soldiers for defense.",  requires: "     Requires: Workshop", maxCalc: 0},
+                            {name: "Walls",          enabled: 0, printOut: [(buildingNum.walls + "/" + (WALL_FACTORS.PER_LAND * landNum)),       ("Lumber:                 -" + WALL_FACTORS.LUMBER_COST),     ("Stone:                  -" + WALL_FACTORS.STONE_COST), ("Defense:               +" + WALL_FACTORS.DEFENCE_BONUS)],              description: "  Strengthen your defenses.",    requires: "     Requires: Barracks", maxCalc: 0}, 
+                            {name: "Siege Workshop", enabled: 0, printOut: [(buildingNum.siege + "/" + (SIEGE_FACTORS.PER_LAND * landNum)),      ("Lumber:                 -" + SIEGE_FACTORS.LUMBER_COST),    ("Stone:                  -" + SIEGE_FACTORS.STONE_COST),("Gold:                   -" + SIEGE_FACTORS.GOLD_COST)],                    description: " Enables catapult building.",   requires: "       Requires: Walls",    maxCalc: 0}];
+        
+        var ARMY_DETAILS = [];
+
+        var TAB_COLOR_IDLE = ["#423c00", "#000642", "#00421c", "#420007", "#230042", "#421f00"];
+        var TAB_COLOR_SELECTED = ["#d6c000", "#426ef4", "#02e23e", "#e2021c", "#3e006b", "#cc5f00"];
+        var BACK_COLOR = ["#f4efc1", "#c5def7", "#cff7c5", "#f7c5c5", "#dec5f7", "#f4d8c0"];
+        var DISABLED_COLOR = "#b5b5b5";
+        var NOTE_COLOR = {yellow: "#d6c000", blue: "#426ef4", green: "#02e23e", red: "#e2021c", purple: "#3e006b", orange: "#cc5f00", white: "#e0e0e0"};
+        var ERROR_TEXT = "#ff9e9e";
+
+        var secondsTime = 0;
+        var yearTime = 0;
+        var monthTime = 0;
+        var dayTime = 0;
+        var milisecTime = 0;
+
+        var currentPage = PAGE_DETAILS[0];
         var clickLocation = {x: 0, y: 0}
 
-        function splitDate()
-        {
-            if (monthTime > 11)
-            {
-                yearTime += 1;
-                monthTime = 0;
-            }
-            if (dayTime > 31)
-            {
-                monthTime += 1;
-                dayTime = 0;
-                newMonth();
-                immigrationChance();
-                disasterChance();
-            }
-            if (secondsTime > 1.9354837)
-            {
-                dayTime += 1;
-                secondsTime = 0;
-                for (var i = 0; i < sideNotes.length; i++)
-                {
-                    sideNotes[i].time -= 1;
-                }
-            }
-        }
+        var actionCooldowns = [{time: 0, done: 1, usualTime: GATHER_WOOD_FACTORS.TIME, action: "gatherwood", 
+                                execute() {resourceStat.lumber += GATHER_WOOD_FACTORS.LUMBER; 
+                                           sideNotes.push({note: "Builder: We have returned with the lumber!", time: 10, color: NOTE_COLOR.yellow});}}, 
+                               {time: 0, done: 1, usualTime: HUNT_FACTORS.TIME, action: "hunt",
+                                execute() {resourceStat.food += HUNT_FACTORS.FOOD;; 
+                                           sideNotes.push({note: "Builder: The hunting partyhas returned successfull!", time: 10, color: NOTE_COLOR.yellow});}},  
+                               {time: 0, done: 1, usualTime: TOWN_FAIR_FACTORS.TIME, action: "townfaire", 
+                                execute() {moralDegrades.push(TOWN_FAIR_FACTORS.SAT_BOOST); 
+                                           sideNotes.push({note: "Builder: The faire was a huge success! Moral is high.", time: 10, color: NOTE_COLOR.yellow});}}]  
+        
+        var moralDegrades = [];
+        var sideNotes = [];
+
+        var gameOver = 0;
+        
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------DRAWING SCREEN--------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
         function drawStats ()
         {
@@ -165,7 +180,7 @@
 
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#000000";
-            ctx.fillText("Satisfaction: " + (citizensStat.satisfaction * 100) + "%", statOutputX, resourcesY + (3 * nextRowY));
+            ctx.fillText("Satisfaction: " + Math.floor(citizensStat.satisfaction * 100) + "%", statOutputX, resourcesY + (3 * nextRowY));
 
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#000000";
@@ -183,21 +198,41 @@
             ctx.fillStyle = "#000000";
             ctx.fillText("Gold:   " + resourceStat.gold, statOutputX + nextRowX, resourcesY + (3 * nextRowY));
 
+            var posNeg = "+";
+            if (monthlyIncome.foodRate < 0)
+            {
+                posNeg = "-";
+            }
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#919191";
-            ctx.fillText("+" + monthlyIncome.foodRate, statOutputX + (rateRowFactor * nextRowX), resourcesY);
+            ctx.fillText(posNeg + Math.abs(monthlyIncome.foodRate), statOutputX + (rateRowFactor * nextRowX), resourcesY);
 
+            posNeg = "+";
+            if (monthlyIncome.lumberRate < 0)
+            {
+                posNeg = "-";
+            }
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#919191";
-            ctx.fillText("+" + monthlyIncome.lumberRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + nextRowY);
+            ctx.fillText(posNeg + Math.abs(monthlyIncome.lumberRate), statOutputX + (rateRowFactor * nextRowX), resourcesY + nextRowY);
 
+            posNeg = "+";
+            if (monthlyIncome.stoneRate < 0)
+            {
+                posNeg = "-";
+            }
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#919191";
-            ctx.fillText("+" + monthlyIncome.stoneRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + (2 * nextRowY));
+            ctx.fillText(posNeg + Math.abs(monthlyIncome.stoneRate), statOutputX + (rateRowFactor * nextRowX), resourcesY + (2 * nextRowY));
 
+            posNeg = "+";
+            if (monthlyIncome.goldRate < 0)
+            {
+                posNeg = "-";
+            }
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#919191";
-            ctx.fillText("+" + monthlyIncome.goldRate, statOutputX + (rateRowFactor * nextRowX), resourcesY + (3 * nextRowY));
+            ctx.fillText(posNeg + Math.abs(monthlyIncome.goldRate), statOutputX + (rateRowFactor * nextRowX), resourcesY + (3 * nextRowY));
 
             ctx.font='bold 20px Courier New';
             ctx.fillStyle = "#000000";
@@ -223,6 +258,8 @@
 
             ctx.fillStyle = "#000000";
             ctx.fillRect((canvas.width * 0.2), (canvas.height * .15) + (canvas.height * .0541), (canvas.width - (canvas.width * 0.2)), (canvas.height * 0.004));
+
+            ctx.fillRect(0, (canvas.height * .8), (canvas.width), (canvas.height * 0.2));
 
             
         }
@@ -303,6 +340,254 @@
             ctx.fillText(PAGE_DETAILS[5].toUpperCase(), (canvas.width * 0.896), (canvas.height * .195));
         }
 
+        function drawHomeButtons()
+        {
+            var buttonsX = (ctx.canvas.width * 0.265);
+            var buttonsNextX = (ctx.canvas.width * 0.175);
+            var buttonsY = (ctx.canvas.height * 0.255);
+            var buttonsNextY = (ctx.canvas.height * 0.1315);
+            var buttonDisabled = 0;
+            var BUTTON_ROWS = 4;
+            var pageIndex = 0;
+
+            for (var i = 0; i < BUTTON_ROWS; i++)
+            {
+                if (currentPage == PAGE_DETAILS[i])
+                {
+                    pageIndex = i;
+                }
+            }
+
+            for (var i = 0; i < BUTTON_ROWS; i++)
+            {
+                ctx.beginPath();
+                ctx.fillStyle = TAB_COLOR_SELECTED[pageIndex];
+                if (HOME_DETAILS[i].enabled == 0)
+                {
+                    ctx.fillStyle = "#8c8c8c"
+                }
+                ctx.fillRect(buttonsX + (i * buttonsNextX), buttonsY, (155 * 1.2), (40 * 1.2))
+                ctx.closePath();
+            }
+
+            for (var i = 0; i < actionCooldowns.length; i++)
+            {
+                if (actionCooldowns[i].time > 0)
+                {
+                    ctx.beginPath();
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(buttonsX + (i * buttonsNextX), buttonsY, ((155 * 1.2) * (actionCooldowns[i].time / actionCooldowns[i].usualTime)), (40 * 1.2))
+                    ctx.closePath();
+                }
+                
+            }
+
+            if (currentPage == PAGE_DETAILS[0])
+            {
+                ctx.font='bold 25px Courier New';
+                ctx.fillStyle = "#000000";
+                ctx.fillText(HOME_DETAILS[0].name, buttonsX + (ctx.canvas.width * 0.007), buttonsY + (ctx.canvas.width * 0.0258));
+
+                ctx.font='bold 25px Courier New';
+                ctx.fillStyle = "#000000";
+                ctx.fillText(HOME_DETAILS[1].name, buttonsX + (ctx.canvas.width * 0.194), buttonsY + (ctx.canvas.width * 0.0258));
+
+                ctx.font='bold 25px Courier New';
+                ctx.fillStyle = "#000000";
+                ctx.fillText(HOME_DETAILS[2].name, buttonsX + (ctx.canvas.width * 0.3588), buttonsY + (ctx.canvas.width * 0.0258));
+
+                ctx.font='bold 25px Courier New';
+                ctx.fillStyle = "#000000";
+                ctx.fillText(HOME_DETAILS[3].name, buttonsX + (ctx.canvas.width * 0.546), buttonsY + (ctx.canvas.width * 0.0258));
+            }
+        }
+
+        function drawStatsButtons()
+        {
+
+        }
+        
+        function drawBuildButtons()
+        {
+            var buttonsX = (ctx.canvas.width * 0.265);
+            var buttonsNextX = (ctx.canvas.width * 0.175);
+            var buttonsY = (ctx.canvas.height * 0.255);
+            var buttonsNextY = (ctx.canvas.height * 0.1315);
+            var buttonDisabled = 0;
+            var BUTTON_ROWS = 4;
+            var BUTTON_COL = 3;
+            var BUTTON_NUM = 11;
+            var printedButtons = 0;
+            var pageIndex = 0;
+
+            for (var i = 0; i < BUTTON_ROWS; i++)
+            {
+                if (currentPage == PAGE_DETAILS[i])
+                {
+                    pageIndex = i;
+                }
+            }
+
+            for (var i = 0; i < BUTTON_COL; i++)
+            {
+                for (var j = 0; j < BUTTON_ROWS; j++)
+                {
+                    var addSpace = 0;
+                    ctx.beginPath();
+                    ctx.fillStyle = "#d9fccc";
+                    if (printedButtons == 7)
+                    {
+                        addSpace = 10;
+                    }
+                    ctx.fillRect(buttonsX + (j * buttonsNextX) - (155 * 0.05), buttonsY + (i * buttonsNextY) - (40 * 0.17), (155 * 1.3), (40 * 2.72) + addSpace)
+
+                    ctx.fillStyle = TAB_COLOR_SELECTED[pageIndex];
+
+                    if (BUILD_DETAILS[printedButtons].enabled == 0)
+                    {
+                        ctx.fillStyle = "#8c8c8c";
+                    }
+                    else if (BUILD_DETAILS[printedButtons].maxCalc == 1)
+                    {
+                        ctx.fillStyle = "#77ff9a";
+                    }
+
+                    ctx.fillRect(buttonsX + (j * buttonsNextX), buttonsY + (i * buttonsNextY), (155 * 1.2), (40 * 1.2))
+                    
+                    ctx.closePath();
+                    printedButtons += 1;
+
+                    if (printedButtons == 11)
+                    {
+                        j++;
+                    }
+                }
+            }
+
+            // 1ST ROW
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[0].name, buttonsX + (ctx.canvas.width * 0.045), buttonsY + (ctx.canvas.width * 0.0258));
+            buildText(0);
+
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[1].name, buttonsX + (ctx.canvas.width * 0.226), buttonsY + (ctx.canvas.width * 0.0258));
+            buildText(1);
+
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[2].name, buttonsX + (ctx.canvas.width * 0.38), buttonsY + (ctx.canvas.width * 0.0258));
+            buildText(2);
+
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[3].name, buttonsX + (ctx.canvas.width * 0.5335), buttonsY + (ctx.canvas.width * 0.0258));
+            buildText(3);
+
+            // 2ND ROW
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[4].name, buttonsX + (ctx.canvas.width * 0.009), buttonsY + (ctx.canvas.width * 0.0258) + buttonsNextY);
+            buildText(4);
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[5].name, buttonsX + (ctx.canvas.width * 0.226), buttonsY + (ctx.canvas.width * 0.0258) + buttonsNextY);
+            buildText(5);
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[6].name, buttonsX + (ctx.canvas.width * 0.385), buttonsY + (ctx.canvas.width * 0.0258) + buttonsNextY);
+            buildText(6);
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[7].name, buttonsX + (ctx.canvas.width * 0.565), buttonsY + (ctx.canvas.width * 0.0258) + buttonsNextY);
+            buildText(7);
+            // 3RD ROW
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[8].name, buttonsX + (ctx.canvas.width * 0.026), buttonsY + (ctx.canvas.width * 0.0258) + (2 * buttonsNextY));
+            buildText(8);
+            ctx.font='bold 25px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[9].name, buttonsX + (ctx.canvas.width * 0.22), buttonsY + (ctx.canvas.width * 0.0258) + (2 * buttonsNextY));
+            buildText(9);
+            ctx.font='bold 20px Courier New';
+            ctx.fillStyle = "#000000";
+            ctx.fillText(BUILD_DETAILS[10].name, buttonsX + (ctx.canvas.width * 0.358), buttonsY + (ctx.canvas.width * 0.0258) + (2 * buttonsNextY));
+            buildText(10);
+        }
+
+        function buildText(item)
+        {
+            var buttonsX = (ctx.canvas.width * 0.265);
+            var buttonsNextX = (ctx.canvas.width * 0.175);
+            var buttonsY = (ctx.canvas.height * 0.255);
+            var buttonsNextY = (ctx.canvas.height * 0.1315);
+            var belowBoxY = (ctx.canvas.height * 0.06);
+            var linePrintoutY = (buttonsNextY* .12);
+
+            if (item >= 8)
+            {
+                i = 2;
+            }
+            else if (item >= 4)
+            {
+                i = 1;
+            }
+            else{
+                i = 0;
+            }
+            var j = (item + 4) % 4;
+
+            // Checks if item is available for branch.
+            var lockedItem = 0;
+            if (BUILD_DETAILS[item].enabled == 0)
+            {
+                lockedItem = 1;
+            }
+            
+            // Verfies regular output.
+            if (lockedItem == 0)
+            {
+                ctx.font='900 11px Courier New';
+                ctx.fillStyle = "#000000";
+                ctx.fillText(BUILD_DETAILS[item].description, buttonsX + (j * buttonsNextX), buttonsY + (i * buttonsNextY) + (buttonsNextY * .04) + belowBoxY);
+
+                ctx.font='bold 11px Courier New';
+                ctx.fillStyle = "#000000";
+                var closeness = 1.06;
+                if (String(BUILD_DETAILS[item].printOut[0]).length > 3)
+                {
+                    closeness = 1.006;
+                }
+                ctx.fillText(BUILD_DETAILS[item].printOut[0], buttonsX + (j * buttonsNextX) + (155 * closeness), buttonsY + (i * buttonsNextY) + (belowBoxY * .19));
+
+                for (var k = 1; k < BUILD_DETAILS[item].printOut.length; k++)
+                {
+                    ctx.font='11px Courier New';
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(BUILD_DETAILS[item].printOut[k], buttonsX + (j * buttonsNextX), ((buttonsY * .975) + (i * buttonsNextY) + belowBoxY + ((k + 1) * linePrintoutY)));
+                }
+                
+
+            }
+            // Unavailable Iteams
+            else
+            {
+                ctx.font='bold 11px Courier New';
+                ctx.fillStyle = "#e00000";
+                ctx.fillText(BUILD_DETAILS[item].requires, buttonsX + (j * buttonsNextX), buttonsY + (i * buttonsNextY) + (buttonsNextY * .04) + belowBoxY);
+            }
+
+
+            
+        }
+
+        function drawArmyButtons()
+        {
+
+        }
+   
         function screenRefresh() 
         {
             ctx.canvas.width = (window.innerHeight / 3) * 4;
@@ -311,16 +596,19 @@
             
             satisfactionUpdates();
             defenceUpdates();
-
+            monthlyIncomeCalc();
             
             drawStats();
             drawNotes();
             drawMenuButtons();
             drawGrid();
+            pageToButtons();
 
             // Tracks Time
             splitDate();
-            secondsTime += 0.02;
+            milisecTime += 15;
+            secondsTime += 0.03;
+            checkGameOver();
         }
         
         function drawNotes()
@@ -348,13 +636,17 @@
                 var stringLength = sideNotes[i].note.length;
                 ctx.beginPath();
                 ctx.rect(notesX - rectangleBuffer, notesStartY + (noteLines * notesNextRowY) - (2.5 * rectangleBuffer), 230, (27 * Math.round((stringLength / charLimit) + 0.5)));
-                ctx.fillStyle = "#4c4c4c";
+                ctx.fillStyle = sideNotes[i].color;
                 ctx.fill();
                 ctx.closePath();
                 for (var j = 0; j < Math.round((stringLength / charLimit) + 0.5); j ++)
                 {
                     ctx.font='bold 14px Courier New';
-                    ctx.fillStyle = "#e8e8e8";
+                    ctx.fillStyle = "#000000";
+                    if (sideNotes[i].error == 1)
+                    {
+                        ctx.fillStyle = "#e00000";
+                    }
                     ctx.fillText(sideNotes[i].note.substring((j * charLimit), ((j * charLimit) + charLimit)), notesX, notesStartY + (j * notesNextRowY) + (noteLines * notesNextRowY));
                     noteLines = noteLines + 2;
                 }
@@ -364,7 +656,6 @@
 
         gameStart();
         document.addEventListener("mousemove", mouseMoveHandler, false);
-
         gameCanvas.onclick = function(e) {
             if (e.pageX || e.pageY)
             {
@@ -379,6 +670,83 @@
             clickLocation.y -= gameCanvas.offsetTop;
             checkButtons(clickLocation.x, clickLocation.y);
         }
+        
+        function mouseMoveHandler(e) {
+            var relativeX = e.clientX - canvas.offsetLeft;
+            if(relativeX > 0 && relativeX < canvas.width) 
+            {
+                mouseX = relativeX;
+            }
+            var relativeY = e.clientY - canvas.offsetHeight;
+            if(relativeY > 0 && relativeY < canvas.height)
+            {
+                mouseY = relativeX;
+            }
+        }
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------GAME-RUN--------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+        
+        function checkGameOver()
+        {
+            if (gameOver == 1)
+            {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect((canvas.width * 0.09), canvas.height * 0.09, ((canvas.width) * 0.82), canvas.height * 0.62 - (canvas.height * 0.2));
+                ctx.fillStyle = "#000000";
+                ctx.fillRect((canvas.width * 0.1), canvas.height * 0.1, ((canvas.width) * 0.8), canvas.height * 0.6 - (canvas.height * 0.2));
+
+                ctx.font='bold 100px Courier New';
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText("GAME OVER", (canvas.width * 0.275), (canvas.width * 0.175));
+
+                ctx.font='bold 25px Courier New';
+                ctx.fillStyle = "d8d8d8";
+                ctx.fillText("The builder groans one last time", (canvas.width * 0.3015), canvas.height * 0.3);
+                ctx.fillText("before succoming to starvation.", (canvas.width * 0.315), canvas.height * 0.35);
+
+                ctx.font='bold 50px Courier New';
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText("All is Lost.", (canvas.width * 0.365), canvas.height * 0.43);
+                
+                clearInterval(interval);
+            }
+        }
+
+        var interval = setInterval(screenRefresh, 10);
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------BUTTONS---------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+        function pageToButtons()
+        {
+            if (currentPage == PAGE_DETAILS[0])
+            {
+                drawHomeButtons();
+            }
+            if ((currentPage == PAGE_DETAILS[1]))
+            {
+                drawStatsButtons();
+            }
+            if ((currentPage == PAGE_DETAILS[2]))
+            {
+                drawBuildButtons();
+            }
+            if ((currentPage == PAGE_DETAILS[3]))
+            {
+                drawArmyButtons();
+            }
+            if ((currentPage == PAGE_DETAILS[4]))
+            {
+
+            }
+            if ((currentPage == PAGE_DETAILS[1]))
+            {
+
+            }
+        }
 
         function checkButtons(clickX, clickY)
         {
@@ -387,7 +755,14 @@
                                 MENU3: {sx: (canvas.width * 0.21) + (2 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
                                 MENU4: {sx: (canvas.width * 0.21) + (3 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
                                 MENU5: {sx: (canvas.width * 0.21) + (4 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}, 
-                                MENU6: {sx: (canvas.width * 0.21) + (5 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40}};
+                                MENU6: {sx: (canvas.width * 0.21) + (5 * (ctx.canvas.width * 0.1315)), lx: 155, sy: ((canvas.height * .15) + (canvas.width * 0.01)), ly: 40},};
+            
+            //sideNotes.push({note: "x: " + clickX + "  y: " + clickY, time: 10, color: NOTE_COLOR.white});
+
+            var buttonsX = (ctx.canvas.width * 0.265);
+            var buttonsNextX = (ctx.canvas.width * 0.175);
+            var buttonsY = (ctx.canvas.height * 0.255);
+            var buttonsNextY = (ctx.canvas.height * 0.1315);
 
             if ((clickX > MENU_BUTTON_XY.MENU1.sx) && (clickX < MENU_BUTTON_XY.MENU1.sx + MENU_BUTTON_XY.MENU1.lx) && (clickY > MENU_BUTTON_XY.MENU1.sy) && (clickY < MENU_BUTTON_XY.MENU1.sy + MENU_BUTTON_XY.MENU1.ly))
             {
@@ -413,32 +788,253 @@
             {
                 currentPage = PAGE_DETAILS[5];
             }
+            // ROW 1
+            else if ((clickX > buttonsX) && (clickX < buttonsX + (155 * 1.2)) && (clickY > buttonsY) && (clickY < buttonsY + (40 * 1.2)))
+            {
+                buttonFunction(1);
+            }
+            else if ((clickX > buttonsX + buttonsNextX) && (clickX < buttonsX + buttonsNextX + (155 * 1.2)) && (clickY > buttonsY) && (clickY < buttonsY + (40 * 1.2)))
+            {
+                buttonFunction(2);
+            }
+            else if ((clickX > buttonsX + (2 * buttonsNextX)) && (clickX < buttonsX + (2 * buttonsNextX + (155 * 1.2))) && (clickY > buttonsY) && (clickY < buttonsY + (40 * 1.2)))
+            {
+                buttonFunction(3);
+            }
+            else if ((clickX > buttonsX + (3 * buttonsNextX)) && (clickX < buttonsX + (3 * buttonsNextX) + (155 * 1.2)) && (clickY > buttonsY) && (clickY < buttonsY + (40 * 1.2)))
+            {
+                buttonFunction(4);
+            }
+            // ROW 2
+            else if ((clickX > buttonsX) && (clickX < buttonsX + (155 * 1.2)) && (clickY > buttonsY + buttonsNextY) && (clickY < buttonsY + buttonsNextY + (40 * 1.2)))
+            {
+                buttonFunction(5);
+            }
+            else if ((clickX > buttonsX + buttonsNextX) && (clickX < buttonsX + buttonsNextX + (155 * 1.2)) && (clickY > buttonsY + buttonsNextY) && (clickY < buttonsY + buttonsNextY + (40 * 1.2)))
+            {
+                buttonFunction(6);
+            }
+            else if ((clickX > buttonsX + (2 * buttonsNextX)) && (clickX < buttonsX + (2 * buttonsNextX) + (155 * 1.2)) && (clickY > buttonsY + buttonsNextY) && (clickY < buttonsY + buttonsNextY + (40 * 1.2)))
+            {
+                buttonFunction(7);
+            }
+            else if ((clickX > buttonsX + (3 * buttonsNextX)) && (clickX < buttonsX + (3 * buttonsNextX) + (155 * 1.2)) && (clickY > buttonsY + buttonsNextY) && (clickY < buttonsY + buttonsNextY + (40 * 1.2)))
+            {
+                buttonFunction(8);
+            }
+            // ROW 3
+            else if ((clickX > buttonsX) && (clickX < buttonsX + (155 * 1.2)) && (clickY > buttonsY + (2 * buttonsNextY)) && (clickY < buttonsY + (2 * buttonsNextY) + (40 * 1.2)))
+            {
+                buttonFunction(9);
+            }
+            else if ((clickX > buttonsX + buttonsNextX) && (clickX < buttonsX + buttonsNextX + (155 * 1.2)) && (clickY > buttonsY + (2 * buttonsNextY)) && (clickY < buttonsY + (2 * buttonsNextY) + (40 * 1.2)))
+            {
+                buttonFunction(10);
+            }
+            else if ((clickX > buttonsX + (2 * buttonsNextX)) && (clickX < (buttonsX + (2 * buttonsNextX) + (155 * 1.2))) && (clickY > buttonsY + (2 * buttonsNextY)) && (clickY < buttonsY + (2 * buttonsNextY) + (40 * 1.2)))
+            {
+                buttonFunction(11);
+            }
         }
         
-        function mouseMoveHandler(e) {
-            var relativeX = e.clientX - canvas.offsetLeft;
-            if(relativeX > 0 && relativeX < canvas.width) 
+        function buttonFunction(button)
+        {
+            if (currentPage == PAGE_DETAILS[0])
             {
-                mouseX = relativeX;
+                switch (button)
+                {
+                    case 1:
+                        gatherWood();
+                        break;
+                    case 2:
+                        huntFood();
+                        break;
+                    case 3:
+                        makeWeapons();
+                        break;
+                    case 4:
+                        townFaire();
+                        break;
+                    default:
+                        break;
+                }
             }
-            var relativeY = e.clientY - canvas.offsetHeight;
-            if(relativeY > 0 && relativeY < canvas.height)
+
+            else if (currentPage == PAGE_DETAILS[1])
             {
-                mouseY = relativeX;
+                switch (button)
+                {
+                    case 1:
+
+                        break;
+                    case 2:
+
+                        break;
+                    case 3:
+   
+                        break;
+                    case 4:
+           
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            else if (currentPage == PAGE_DETAILS[2])
+            {
+                switch (button)
+                {
+                    case 1:
+                        buildHouse();
+                        break;
+                    case 2:
+                        startFarm();
+                        break;
+                    case 3:
+                        buildCarpentersWorkshop();
+                        break;
+                    case 4:
+                        buildTownSquare();
+                        break;
+                    case 5:
+                        buildLumberMill();
+                        break;
+                    case 6:
+                        startMine();
+                        break;
+                    case 7:
+                        buildTavern();
+                        break;
+                    case 8:
+                        buildMarket();
+                        break;
+                    case 9:
+                        buildBarracks();
+                        break;
+                    case 10:
+                        buildWalls();
+                        break;
+                    case 11:
+                        buildSiegeWorkshop();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            else if (currentPage == PAGE_DETAILS[3])
+            {
+                switch (button)
+                {
+                    default:
+                        break;
+                }
+            }
+
+            else if (currentPage == PAGE_DETAILS[4])
+            {
+                switch (button)
+                {
+                    default:
+                        break;
+                }
+            }
+
+            else if (currentPage == PAGE_DETAILS[5])
+            {
+                switch (button)
+                {
+                    default:
+                        break;
+                }
             }
         }
 
-        setInterval(screenRefresh, 10);
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------TIME------------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+        function splitDate()
+        {
+            if (monthTime > 11)
+            {
+                yearTime += 1;
+                monthTime = 0;
+            }
+            if (dayTime > 31)
+            {
+                monthTime += 1;
+                dayTime = 0;
+                newMonth();
+                immigrationChance();
+                disasterChance();
+
+            }
+            if (secondsTime > 1.9354837)
+            {
+                dayTime += 1;
+                secondsTime = 0;
+                for (var i = 0; i < sideNotes.length; i++)
+                {
+                    sideNotes[i].time -= 1;
+                }
+                for (var i = 0; i < moralDegrades.length; i++)
+                {
+                    if (moralDegrades[i] > (0.1 / 31))
+                    {
+                        moralDegrades[i] -= (0.1 / 31);
+                    }
+                    else if (moralDegrades[i] < (0.1 / -31))
+                    {
+                        moralDegrades[i] += (0.1 / 31);
+                    }
+                    else if ((moralDegrades[i] <= (0.1 / 31)) && (moralDegrades[i] >= (0.1 / -31)))
+                    {
+                        moralDegrades.splice(i, 1);
+                    }
+                    
+                }
+            }
+            if (milisecTime > 10)
+            {
+                milisecTime = 0;
+                for (var i = 0; i < actionCooldowns.length; i++)
+                {
+                    if (actionCooldowns[i].time > 0)
+                    {
+                        actionCooldowns[i].time -= .01;
+                    }
+                    else if (actionCooldowns[i].done <= 0)
+                    {
+                        actionCooldowns[i].execute();
+                        actionCooldowns[i].done = 1;
+                    }
+                }
+            }
+            
+        }
 
         function newMonth()
         {
             resourceStat.lumber += monthlyIncome.lumberRate;
+            // FOOD
             if ((resourceStat.food += monthlyIncome.foodRate) < 0)
             {
+                var deadCit = Math.abs(((resourceStat.food + monthlyIncome.foodRate) / CITIZEN_FACTORS.FOOD_NEEDS));
                 resourceStat.food = 0;
-                citizensStat.population -= ((resourceStat.food += monthlyIncome.foodRate) / CITIZEN_FACTORS.FOOD_NEEDS);
-                sideNotes.push({note: "Builder: Sire, our people are dying of stavation, we lost " + ((resourceStat.food += monthlyIncome.foodRate) / CITIZEN_FACTORS.FOOD_NEEDS) + " good people.", time: 10});
-                citizensStat.satisfaction -= STARVE_FACTORS.SAT_DEPRESSION;
+                if (citizensStat.population > deadCit)
+                {
+                    citizensStat.population -= deadCit;
+                    sideNotes.push({note: "Builder: Sire, our people are dying of stavation, we lost " + deadCit + " good people.", time: 10, color: NOTE_COLOR.white});
+                    moralDegrades.push(STARVE_FACTORS.SAT_DEPRESSION);
+                }
+                if (citizensStat.population <= deadCit)
+                {
+                    citizensStat.population = 0;
+                    
+                    gameOverFunc(1);
+                }
             }
             else
             {
@@ -474,13 +1070,39 @@
                         resourceStat.gold += monthlyIncome.goldRate;
                     }
                 }
-                sideNotes.push({note: "Builder: Sire we cannot afford to pay our army, those who were not paid have left their posts", time: 10});
-                citizensStat.satisfaction -= BANKRUPT_FACTORS.SAT_DEPRESSION;
+                sideNotes.push({note: "Builder: Sire we cannot afford to pay our army, those who were not paid have left their posts", time: 10, color: NOTE_COLOR.white});
+                moralDegrades.push(BANKRUPT_FACTORS.SAT_DEPRESSION);
             }
             else
             {
                 resourceStat.gold += monthlyIncome.goldRate;
             }
+        }
+        
+        function monthlyIncomeCalc()
+        {
+            // Food
+            var foodIncome = 0;
+            foodIncome += (laborDistribution.farm * FARM_FACTORS.INCOME_PER_WORKER);
+            foodIncome -= (citizensStat.population * CITIZEN_FACTORS.FOOD_NEEDS);
+            monthlyIncome.foodRate = Math.round(foodIncome);
+            // Lumber
+            var lumberIncome = 0;
+            lumberIncome += (laborDistribution.lumber * LM_FACTORS.INCOME_PER_WORKER);
+            monthlyIncome.lumberRate = Math.round(lumberIncome);
+            // Stone
+            var stoneIncome = 0;
+            stoneIncome += (laborDistribution.mine * MINE_FACTORS.INCOME_PER_WORKER);
+            monthlyIncome.stoneRate = Math.round(stoneIncome);
+            // Gold
+            var goldIncome = 0;
+            goldIncome += (citizensStat.population * (CITIZEN_FACTORS.CIT_INCOME * citizensStat.taxRate));
+            goldIncome += (TAVERN_FACTORS.INCOME_PER_WORKER * laborDistribution.tavern);
+            goldIncome += (buildingNum.market * MARKET_FACTORS.GOLD_INCOME);
+            goldIncome -= (laborDistribution.soldier * SOLDIER_FACTORS.MONTHLY_WAGE);
+            goldIncome -= (laborDistribution.archer * ARCHER_FACTORS.MONTHLY_WAGE);
+            goldIncome -= (laborDistribution.catapult * CATAPULT_FACTORS.MONTHLY_WAGE);
+            monthlyIncome.goldRate = Math.round(goldIncome);
         }
 
         function immigrationChance()
@@ -507,7 +1129,11 @@
             {
                 imgOutcome = immigrantCit + " chose to    stay."
             }
-            sideNotes.push({note: "Builder: The kingdom had  " + newVisitors + " visitors, " + imgOutcome, time: 10});
+            else if ((immigrantCit == 0) && (availableBeds > 0))
+            {
+                imgOutcome = "but none chose to stay."
+            }
+            sideNotes.push({note: "Builder: The kingdom had  " + newVisitors + " visitors, " + imgOutcome, time: 10, color: NOTE_COLOR.white});
             citizensStat.population += immigrantCit;
         }
 
@@ -559,6 +1185,10 @@
             baseSatisfaction += (buildingNum.market * MARKET_FACTORS.SAT_BOOST);
             baseSatisfaction += (buildingNum.townsqr * TOWN_SQR_FACTORS.SAT_BOOST);
             baseSatisfaction -= (citizensStat.taxRate * CITIZEN_FACTORS.TAX_TO_SAT);
+            for (var i = 0; i < moralDegrades.length; i++)
+            {
+                baseSatisfaction -= moralDegrades[i];
+            }
             citizensStat.satisfaction = baseSatisfaction;
         }
 
@@ -578,11 +1208,597 @@
 
         function gameStart()
         {
-            sideNotes.push({note: "A stranger stumbles into  your home, she says she   can build things. She saysyou can help the people.", time: 10});
+            sideNotes.push({note: "A stranger stumbles into  your home, she says she   can build things. She saysyou can help others.", time: 10, color: NOTE_COLOR.white});
+        }
+
+        function gameOverFunc(reason)
+        {
+            if (reason == 1)
+            {
+                sideNotes.push({note: "The builder groans one last time before succoming to starvation. All is lost.", time: 100, color: NOTE_COLOR.white});
+            }
+            gameOver = 1;
+        }
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------ACTIONS------------------------------------------------------------------------------------------------------------
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+        // GATHERING WOOD
+        function gatherWood()
+        {
+            if (actionCooldowns[0].time <= 0)
+            {
+                actionCooldowns[0].time = GATHER_WOOD_FACTORS.TIME;
+                actionCooldowns[0].done = 0;
+                sideNotes.push({note: "Builder: Gathering wood.", time: 10, color: NOTE_COLOR.yellow, error: 0});
+            }
+            else
+            {
+                sideNotes.push({note: "Builder: You have to wait until you bring back the  wood from your last       gathering!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // HUNTING FOR FOOD
+        function huntFood()
+        {
+            if (actionCooldowns[1].time <= 0)
+            {
+                actionCooldowns[1].time = HUNT_FACTORS.TIME;
+                actionCooldowns[1].done = 0;
+                sideNotes.push({note: "Builder: A hunting party  has been sent out.", time: 10, color: NOTE_COLOR.yellow, error: 0});
+            }
+            else
+            {
+                sideNotes.push({note: "Builder: You have to wait until the current hunting party returns!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // TOWN FAIRE!
+        function townFaire()
+        {
+            if (buildingNum.townsqr >= 1)
+            {
+                if (actionCooldowns[2].time <= 0)
+                {
+                    if ((resourceStat.food >= TOWN_FAIR_FACTORS.FOOD) && (resourceStat.gold >= TOWN_FAIR_FACTORS.GOLD))
+                    {
+                        resourceStat.food -= TOWN_FAIR_FACTORS.FOOD;
+                        resourceStat.gold -= TOWN_FAIR_FACTORS.GOLD;
+                        actionCooldowns[2].time = TOWN_FAIR_FACTORS.TIME;
+                        actionCooldowns[2].done = 0;
+                        sideNotes.push({note: "Builder: The village is preparing for the faire!", time: 10, color: NOTE_COLOR.yellow, error: 0});
+                    }
+                    else if (resourceStat.food < TOWN_FAIR_FACTORS)
+                    {
+                        sideNotes.push({note: "Builder: Sire, we don't have enough food for a faire.", time: 10, color: NOTE_COLOR.white, error: 1});
+                    }
+                    else
+                    {
+                        sideNotes.push({note: "Builder: Sire, we don't have enough gold for a faire.", time: 10, color: NOTE_COLOR.white, error: 1});
+                    }
+                }
+                else
+                {
+                    sideNotes.push({note: "Builder: We already have a faire planned Sire!", time: 10, color: NOTE_COLOR.white, error: 1});
+                }
+            }
+            else
+            {
+                sideNotes.push({note: "Builder: We need to build a town square to hold     faires.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            
+        }
+
+        // CHANGE TAXES
+        function addTaxes()
+        {
+            citizensStat.taxRate += 0.01;
+        }
+        function subTaxes()
+        {
+            citizensStat.taxRate -= 0.01;
+        }
+
+        // Training Troops
+        function trainTroops()
+        {
+            if ((resourceStat.gold >= SOLDIER_FACTORS.GOLD_TRAIN) && (laborDistribution.free > 0) && (resourceStat.weaponsNum >= SOLDIER_FACTORS.WEAPON_TRAIN))
+            {
+                laborDistribution.soldier += 1;
+                laborDistribution.free -= 0;
+                resourceStat.gold -= SOLDIER_FACTORS.GOLD_TRAIN;
+                resourceStat.weaponsNum -= SOLDIER_FACTORS.WEAPON_TRAIN;
+                sideNotes.push({note: "Builder: A new soldier was trained.", time: 10, color: NOTE_COLOR.red, error: 0});
+            }
+            else if (resourceStat.gold < SOLDIER_FACTORS.GOLD_TRAIN)
+            {
+                sideNotes.push({note: "Builder: We don't have enough gold to train!", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (laborDistribution.free < 1)
+            {
+                sideNotes.push({note: "Builder: Free up some workers to train a soldier!", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have any weapons to train him with.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+        }
+
+        // Train Archers
+        function trainArchers()
+        {
+            if ((resourceStat.gold >= ARCHER_FACTORS.GOLD_TRAIN) && (laborDistribution.free > 0) && (resourceStat.weaponsNum >= ARCHER_FACTORS.WEAPON_TRAIN) && (buildingNum.walls > 0))
+            {
+                laborDistribution.archer += 1;
+                laborDistribution.free -= 0;
+                resourceStat.gold -= ARCHER_FACTORS.GOLD_TRAIN;
+                resourceStat.weaponsNum -= ARCHER_FACTORS.WEAPON_TRAIN;
+                sideNotes.push({note: "Builder: A new archer was trained.", time: 10, color: NOTE_COLOR.red, error: 0});
+                return null;
+            }
+            else if (buildingNum.walls < 1)
+            {
+                sideNotes.push({note: "Builder: We need walls to train an archer.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.gold < ARCHER_FACTORS.GOLD_TRAIN)
+            {
+                sideNotes.push({note: "Builder: We don't have enough gold to train!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (laborDistribution.free < 1)
+            {
+                sideNotes.push({note: "Builder: Free up some workers to train an archer!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have any weapons to train him with.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // Build Catapults
+        function buildCatapults()
+        {
+            if ((resourceStat.gold >= CATAPULT_FACTORS.GOLD_TRAIN) && ((laborDistribution.free > 1) || (laborDistribution.soldier > 1)) && (resourceStat.lumber >= CATAPULT_FACTORS.LUMBER_COST) && (buildingNum.siege > 0))
+            {
+                laborDistribution.catapult += 1;
+                if (laborDistribution.free > 1)
+                {
+                    laborDistribution.free -= 2;
+                }
+                else
+                {
+                    laborDistribution.soldier -= 2;
+                }
+                resourceStat.gold -= CATAPULT_FACTORS.GOLD_TRAIN;
+                resourceStat.lumber -= CATAPULT_FACTORS.LUMBER_COST;
+                sideNotes.push({note: "Builder: A new catapult is ready.", time: 10, color: NOTE_COLOR.red, error: 0});
+                return null;
+            }
+            else if (buildingNum.siege < 1)
+            {
+                sideNotes.push({note: "Builder: We need a siege factory to build a catapult.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < CATAPULT_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: We don't have enough lumber to build!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.gold < CATAPULT_FACTORS.GOLD_TRAIN)
+            {
+                sideNotes.push({note: "Builder: We don't have enough gold to train!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else
+            {
+                sideNotes.push({note: "Builder: There are no free soldiers or civilians to train!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        //
+        function makeWeapons()
+        {
+            if ((resourceStat.stone >= WEAPON_FACTORS.STONE_COST) && (resourceStat.gold >= WEAPON_FACTORS.GOLD_COST))
+            {
+                resourceStat.weaponsNum += 1;
+                resourceStat.gold -= WEAPON_FACTORS.GOLD_COST;
+                resourceStat.stone -= WEAPON_FACTORS.STONE_COST;
+                sideNotes.push({note: "Builder: Weapons built.", time: 10, color: NOTE_COLOR.yellow, error: 0});
+                return null;
+            }
+            else if (resourceStat.gold < WEAPON_FACTORS.GOLD_COST)
+            {
+                
+                sideNotes.push({note: "Builder: We don't have enough gold to make this!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we don't have enough stone to make this!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+        //-----------------------------------------------------------------BUILDING--------------------------------------------------------------------------------------------------------
+        //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+        // BUILD A HOUSE
+        function buildHouse()
+        {
+            if ((resourceStat.lumber >= HOUSE_FACTORS.LUMBER_COST) && (buildingNum.houses <= (HOUSE_FACTORS.PER_LAND * resourceStat.landNum)))
+            {
+                buildingNum.houses += 1;
+                resourceStat.lumber -= HOUSE_FACTORS.LUMBER_COST;
+                sideNotes.push({note: "Builder: A new house was  built! We now have space  for more citizens.", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.houses >= (HOUSE_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[0].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (buildingNum.houses >= (HOUSE_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: You cannot build any more houses sire, we need more land.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // START A FARM
+        function startFarm()
+        {
+            if ((resourceStat.lumber >= FARM_FACTORS.LUMBER_COST) && (buildingNum.farm < (FARM_FACTORS.PER_LAND * resourceStat.landNum)))
+            {
+                buildingNum.farm += 1;
+                resourceStat.lumber -= FARM_FACTORS.LUMBER_COST;
+                sideNotes.push({note: "Builder: The villiagers   have started a new farm toprovide food!", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.farm >= (FARM_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[1].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (buildingNum.farm >= (FARM_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: You cannot build any more farms sire, we need more land.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD CARPENTERS WORKSHOP
+        function buildCarpentersWorkshop()
+        {
+            if ((resourceStat.lumber >= CW_FACTORS.LUMBER_COST) && (buildingNum.carpenter < (CW_FACTORS.PER_LAND * resourceStat.landNum)))
+            {
+                buildingNum.carpenter += 1;
+                resourceStat.lumber -= CW_FACTORS.LUMBER_COST;
+                BUILD_DETAILS[3].enabled = 1;
+                BUILD_DETAILS[4].enabled = 1;
+                BUILD_DETAILS[5].enabled = 1;
+                BUILD_DETAILS[6].enabled = 1;
+                BUILD_DETAILS[7].enabled = 1;
+                BUILD_DETAILS[8].enabled = 1;
+                HOME_DETAILS[2].enabled = 1;
+                sideNotes.push({note: "Builder: We built a       carpenter's workshop! I   can now create all kinds  of buildings, Sire.", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.carpenter >= (CW_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[2].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (buildingNum.carpenter >= (CW_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We do not need   another carpenter's       workshop!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD LUMBER MILL
+        function buildLumberMill()
+        {
+            if ((resourceStat.lumber >= LM_FACTORS.LUMBER_COST) && (buildingNum.lumbermill < (LM_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[4].enabled == 1))
+            {
+                buildingNum.lumbermill += 1;
+                resourceStat.lumber -= LM_FACTORS.LUMBER_COST;
+                sideNotes.push({note: "Builder: We now have a    lumbermill! Send citizens to work there and they'll automatically gather!", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.lumbermill >= (LM_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[4].maxCalc = 1;
+                }
+            }
+            else if (BUILD_DETAILS[4].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.lumbermill >= (LM_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: You cannot build any more lumbermills sire, our land has no available forests.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+        }
+
+        // START A MINE
+        function startMine()
+        {
+            if ((resourceStat.lumber >= MINE_FACTORS.LUMBER_COST) && (buildingNum.mine < (MINE_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[5].enabled == 1))
+            {
+                buildingNum.mine += 1;
+                resourceStat.lumber -= MINE_FACTORS.LUMBER_COST;
+                sideNotes.push({note: "Builder: We now have a    mine! Send citizens to    work there and they'll    automatically gather!", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.mine >= (MINE_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[5].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (BUILD_DETAILS[5].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.mine >= (MINE_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: You cannot build any more mines sire, we need more land.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD A BARRACKS
+        function buildBarracks()
+        {
+            if ((resourceStat.lumber >= BRK_FACTORS.LUMBER_COST) && (resourceStat.stone >= BRK_FACTORS.STONE_COST) && (buildingNum.barracks < (BRK_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[8].enabled == 1))
+            {
+                buildingNum.barracks += 1;
+                BUILD_DETAILS[9].enabled = 1;
+                resourceStat.lumber -= BRK_FACTORS.LUMBER_COST;
+                resourceStat.stone -= BRK_FACTORS.STONE_COST;
+                sideNotes.push({note: "Builder: Sire, we now have a barracks in which we can train troops.", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.barracks >= (BRK_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[8].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (BUILD_DETAILS[8].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.barracks >= (BRK_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We do not need another barracks Sire!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < BRK_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough stone.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD A TAVERN
+        function buildTavern()
+        {
+            if ((resourceStat.lumber >= TAVERN_FACTORS.LUMBER_COST) && (resourceStat.stone >= TAVERN_FACTORS.STONE_COST) && (buildingNum.tavern < (TAVERN_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[6].enabled == 1))
+            {
+                buildingNum.tavern += 1;
+                resourceStat.lumber -= TAVERN_FACTORS.LUMBER_COST;
+                resourceStat.stone -= TAVERN_FACTORS.STONE_COST;
+                sideNotes.push({note: "Builder: We now have a    tavern!", time: 10, color: NOTE_COLOR.green, error: 0});
+                if (buildingNum.tavern >= (TAVERN_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[6].maxCalc = 1;
+                }
+                return null;
+            }
+            else if (BUILD_DETAILS[6].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.tavern >= (TAVERN_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We can't build another tavern Sire!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < TAVERN_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough stone.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD A MARKET
+        function buildMarket()
+        {
+            if ((resourceStat.lumber >= MARKET_FACTORS.LUMBER_COST) && (resourceStat.gold >= MARKET_FACTORS.GOLD_COST) && (buildingNum.market < (MARKET_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[7].enabled == 1))
+            {
+                buildingNum.market += 1;
+                resourceStat.lumber -= MARKET_FACTORS.LUMBER_COST;
+                resourceStat.gold -= MARKET_FACTORS.GOLD_COST;
+                if (buildingNum.market >= (MARKET_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[7].maxCalc = 1;
+                }
+                sideNotes.push({note: "Builder: We now have a market, you can trade gold for resources or vice versa. Taxes from the market provide wealth monthly.", time: 10, color: NOTE_COLOR.green, error: 0});
+                return null;
+            }
+            else if (BUILD_DETAILS[7].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.barracks >= (MARKET_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We do not need another market Sire!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < MARKET_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough gold.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD WALLS
+        function buildWalls()
+        {
+            if ((resourceStat.lumber >= WALL_FACTORS.LUMBER_COST) && (resourceStat.stone >= WALL_FACTORS.STONE_COST) && (buildingNum.walls < (WALL_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[9].enabled == 1))
+            {
+                buildingNum.walls += 1;
+                BUILD_DETAILS[10].enabled = 1;
+                resourceStat.lumber -= WALL_FACTORS.LUMBER_COST;
+                resourceStat.stone -= WALL_FACTORS.STONE_COST;
+                if (buildingNum.walls >= (WALL_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[9].maxCalc = 1;
+                }
+                sideNotes.push({note: "Builder: The walls are up! We are better prepared to fight off any invasion and we can now train archers.", time: 10, color: NOTE_COLOR.green, error: 0});
+                return null;
+            }
+            else if (BUILD_DETAILS[9].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Barracks.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.walls >= (WALL_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: Our walls can't be built up any more!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < WALL_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough stone.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD A SIEGE WORKSHOP
+        function buildSiegeWorkshop()
+        {
+            if ((resourceStat.lumber >= SIEGE_FACTORS.LUMBER_COST) && (resourceStat.stone >= SIEGE_FACTORS.STONE_COST) && (resourceStat.gold >= SIEGE_FACTORS.GOLD_COST) && (buildingNum.siege < (SIEGE_FACTORS.PER_LAND * resourceStat.landNum)) && (BUILD_DETAILS[10].enabled == 1))
+            {
+                buildingNum.siege += 1;
+                resourceStat.lumber -= SIEGE_FACTORS.LUMBER_COST;
+                resourceStat.stone -= SIEGE_FACTORS.STONE_COST;
+                resourceStat.gold -= SIEGE_FACTORS.GOLD_COST;
+                if (buildingNum.siege >= (SIEGE_FACTORS.PER_LAND * resourceStat.landNum))
+                {
+                    BUILD_DETAILS[10].maxCalc = 1;
+                }
+                sideNotes.push({note: "Builder: The siege factory is now ready to produce catapults!", time: 10, color: NOTE_COLOR.green, error: 0});
+                return null;
+            }
+            else if (BUILD_DETAILS[10].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need   Walls.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.siege >= (SIEGE_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We do not need another barracks Sire!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.lumber < SIEGE_FACTORS.LUMBER_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.gold < SIEGE_FACTORS.GOLD_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough gold.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough stone.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+        }
+
+        // BUILD A TOWN SQUARE
+        function buildTownSquare()
+        {
+            if (((citizensStat.population >= TOWN_SQR_FACTORS.POPULATION) && resourceStat.townsqr >= TOWN_SQR_FACTORS.LUMBER_COST) && (resourceStat.gold >= TOWN_SQR_FACTORS.GOLD_COST) && (buildingNum.townsqr < (TOWN_SQR_FACTORS.PER_LAND * resourceStat.landNum)))
+            {
+                buildingNum.townsqr += 1;
+                HOME_DETAILS[2].enabled = 1;
+                resourceStat.lumber -= TOWN_SQR_FACTORS.LUMBER_COST;
+                resourceStat.gold -= TOWN_SQR_FACTORS.GOLD_COST;
+                sideNotes.push({note: "Builder: The citizens love the town square! Throw faires to make them happy.", time: 10, color: NOTE_COLOR.green, error: 0});
+                return null;
+            }
+            else if (BUILD_DETAILS[3].enabled == 0)
+            {
+                sideNotes.push({note: "Builder: We can't build   that yet, first we need a Workshop.", time: 10, color: NOTE_COLOR.white, error: 1});
+            }
+            else if (buildingNum.townsqr >= (TOWN_SQR_FACTORS.PER_LAND * resourceStat.landNum))
+            {
+                sideNotes.push({note: "Builder: We already love the town square we have!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (citizensStat.population < TOWN_SQR_FACTORS.POPULATION)
+            {
+                sideNotes.push({note: "Builder: Sire, we don't   have enough people for a  town square!", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else if (resourceStat.gold < TOWN_SQR_FACTORS.GOLD_COST)
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough gold.", time: 10, color: NOTE_COLOR.white, error: 1});
+                return null;
+            }
+            else 
+            {
+                sideNotes.push({note: "Builder: Sire, we do not have enough wood.", time: 10, color: NOTE_COLOR.white});
+                return null;
+            }
         }
 
     </script>
-
 
     </body>
 
