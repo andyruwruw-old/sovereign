@@ -82,12 +82,12 @@
 
         var PAGE_DETAILS = ["Home", "Stats", "Build", "Army", "Labor", "PAGE2"];
         var HOME_DETAILS = [{name: "Gather Wood", enabled: 1, detail1: ("Lumber: +" + GATHER_WOOD_FACTORS.LUMBER), detail2: "",                                     detail3: ""}, 
-                            {name: "Hunt Food",   enabled: 1, detail1: ("Food: +" + HUNT_FACTORS.FOOD),            detail2: "",                                     detail3: ""}, 
-                            {name: "Make Weapon", enabled: 0, detail1: ("Stone: -" + WEAPON_FACTORS.STONE_COST),   detail2: ("Gold: -" + WEAPON_FACTORS.GOLD_COST), detail3: ""}, 
+                            {name: "Hunt for Food",   enabled: 1, detail1: ("Food: +" + HUNT_FACTORS.FOOD),            detail2: "",                                     detail3: ""}, 
+                            {name: "Make a Weapon", enabled: 0, detail1: ("Stone: -" + WEAPON_FACTORS.STONE_COST),   detail2: ("Gold: -" + WEAPON_FACTORS.GOLD_COST), detail3: ""}, 
                             {name: "Town Fair",   enabled: 0, detail1: ("Food: -" + TOWN_FAIR_FACTORS.FOOD),       detail2: ("Gold: -" + TOWN_FAIR_FACTORS.GOLD),   detail3: ("Defence: +" + WEAPON_FACTORS.DEFENCE)}];
         var STAT_DETAILS = [];
 
-        var resourceStat = {lumber: 100000, food: 6, stone: 10000, gold: 100000, weaponsNum: 0, landNum: 1};
+        var resourceStat = {lumber: 0, food: 6, stone: 0, gold: 0, weaponsNum: 0, landNum: 1};
         var citizensStat = {population: 2, satisfaction: 0.75, taxRate: 0.00};
         var buildingNum = {houses: 1, farm: 0, carpenter: 0, lumbermill: 0, barracks: 0, mine: 0, tavern: 0, market: 0, walls: 0, siege: 0, townsqr: 0};
         var laborDistribution = {farm: 0, lumber: 0, soldier: 0, mine: 0, tavern: 0, archer: 0, catapult: 0, free: 0};
@@ -384,21 +384,21 @@
 
             if (currentPage == PAGE_DETAILS[0])
             {
-                ctx.font='bold 25px Courier New';
+                ctx.font='bold 22px Courier New';
                 ctx.fillStyle = "#000000";
-                ctx.fillText(HOME_DETAILS[0].name, buttonsX + (ctx.canvas.width * 0.007), buttonsY + (ctx.canvas.width * 0.0258));
+                ctx.fillText(HOME_DETAILS[0].name, buttonsX + (ctx.canvas.width * 0.017), buttonsY + (ctx.canvas.width * 0.0258));
 
-                ctx.font='bold 25px Courier New';
+                ctx.font='bold 22px Courier New';
                 ctx.fillStyle = "#000000";
-                ctx.fillText(HOME_DETAILS[1].name, buttonsX + (ctx.canvas.width * 0.194), buttonsY + (ctx.canvas.width * 0.0258));
+                ctx.fillText(HOME_DETAILS[1].name, buttonsX + (ctx.canvas.width * 0.18), buttonsY + (ctx.canvas.width * 0.0258));
 
-                ctx.font='bold 25px Courier New';
+                ctx.font='bold 22px Courier New';
                 ctx.fillStyle = "#000000";
-                ctx.fillText(HOME_DETAILS[2].name, buttonsX + (ctx.canvas.width * 0.3588), buttonsY + (ctx.canvas.width * 0.0258));
+                ctx.fillText(HOME_DETAILS[2].name, buttonsX + (ctx.canvas.width * 0.356), buttonsY + (ctx.canvas.width * 0.0258));
 
-                ctx.font='bold 25px Courier New';
+                ctx.font='bold 22px Courier New';
                 ctx.fillStyle = "#000000";
-                ctx.fillText(HOME_DETAILS[3].name, buttonsX + (ctx.canvas.width * 0.546), buttonsY + (ctx.canvas.width * 0.0258));
+                ctx.fillText(HOME_DETAILS[3].name, buttonsX + (ctx.canvas.width * 0.55), buttonsY + (ctx.canvas.width * 0.0258));
             }
         }
 
